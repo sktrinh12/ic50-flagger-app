@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "experimentID": "140124",
+    "batchID": "FT001646",
+    "target": "FGFR2",
+    "variant": "V564F",
+		"flag": "include"
+  },
+  {
+    "id": 2,
+    "experimentID": "139365",
+    "batchID": "FT000957-01",
+    "target": "FGFR2",
+    "variant": "C491F",
+		"flag": "include"
+  },
+  {
+    "id": 3,
+    "experimentID": "138679",
+    "batchID": "FT000101-01",
+    "target": "CDK2",
+    "variant": "None",
+		"flag": "exclude"
+  },
+  {
+    "id": 4,
+    "experimentID": "138677",
+    "batchID": "FT00356-01",
+    "target": "CDK12",
+    "variant": "None",
+		"flag": "exclude"
+  },
+  {
+    "id": 5,
+    "experimentID": "138674",
+    "batchID": "FT00356-01",
+    "target": "CDK2",
+    "variant": "None",
+		"flag": "include"
+  }
+]
