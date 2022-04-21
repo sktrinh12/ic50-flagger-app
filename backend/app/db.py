@@ -72,3 +72,31 @@ def get_table_data(cmp_id, type):
                 output_dct['PROP1'] = int(r[5])
                 output_lst.append(output_dct)
         return output_lst
+
+def update_table_data(payload):
+
+    with OracleConnection(cred_dct['username_userdata'],
+                          cred_dct['password_userdata'],
+                          cred_dct['host'],
+                          cred_dct['port'],
+                          cred_dct['sid']) as con:
+
+        sql_stmt = "UPDATE DS3_USERDATA."
+        if payload['TYPE'] == 'cellular':
+            sql_stmt += "TEST_CELLULAR_IC50_FLAGS"
+        elif payload['TYPE'] == 'biochem':
+            sql_stmt += "TEST_BIOCHEM_IC50_FLAGS"
+
+        sql_stmt += f""" SET FLAG = {payload["FLAG"]}
+                         WHERE BATCH_ID = '{payload["BATCH_ID"]}'
+                         AND EXPERIMENT_ID = '{payload["EXPERIMENT_ID"]}'
+                         AND TARGET = '{payload["TARGET"]}'
+                         AND VARIANT {'IS NULL' if payload["VARIANT"] == 'None' else f"= '{payload['VARIANT']}'"}
+                         AND PROP1 = {payload["PROP1"]}
+                     """
+        print(sql_stmt)
+
+        with con.cursor() as cursor:
+            cursor.execute(sql_stmt)
+            con.commit()
+        return payload
