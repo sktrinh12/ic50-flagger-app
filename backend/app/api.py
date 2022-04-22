@@ -1,18 +1,31 @@
 from fastapi import FastAPI, Response, Request, HTTPException, status
 from .db import *
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    "localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 @app.get("/v1/get-data", tags=["get-data"])
-async def get_data(ft_nbr: str, type: str) -> Response:
-    if not ft_nbr.startswith('FT') and len(ft_nbr) != 8:
-        raise HTTPException(status_code=404, detail=f"{ft_nbr} is invalid")
-    results = get_table_data(ft_nbr, type)
+async def get_data(compound_id: str, type: str) -> Response:
+    if not compound_id.startswith('FT') and len(compound_id) != 8:
+        raise HTTPException(status_code=404, detail=f"{compound_id} is invalid")
+    results = get_table_data(compound_id, type)
     return results
 
 @app.post("/v1/update-data", tags=["post-data"])
