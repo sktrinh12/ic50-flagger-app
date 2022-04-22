@@ -1,12 +1,12 @@
 export const columns = [
-  { id: 'experimentID',
+  { id: 'EXPERIMENT_ID',
 		label: 'Experiment ID', 
     minWidth: 170,
 		fontWeight: 'bold',
 		backgroundColor: '#343990ff',
 		color: '#efeff6ff'
   },
-  { id: 'batchID', 
+  { id: 'BATCH_ID', 
     label: 'Batch ID',
     minWidth: 100,
 		fontWeight: 'bold',
@@ -14,7 +14,7 @@ export const columns = [
 		color: '#efeff6ff'
   },
   {
-    id: 'target',
+    id: 'TARGET',
     label: 'Target',
     minWidth: 170,
     align: 'right',
@@ -23,7 +23,7 @@ export const columns = [
 		color: '#efeff6ff'
   },
   {
-    id: 'variant',
+    id: 'VARIANT',
     label: 'Variant',
     minWidth: 170,
     align: 'right',
@@ -32,7 +32,7 @@ export const columns = [
 		color: '#efeff6ff'
   },
   {
-    id: 'flag',
+    id: 'FLAG',
     label: 'Flag',
     minWidth: 170,
     align: 'right',
