@@ -8,7 +8,7 @@ const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
   const renderContent = (param) => {
     return (
       <>
-        { ["include", "exclude"].includes(param) ? (
+        { [0, 1, "include", "exclude"].includes(param) ? (
 				<RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
         ) : (
           param
@@ -18,7 +18,7 @@ const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
   };
 
   return (
-    <TableRow hover role="checkbox" tabIndex={-1} key={data.batchID}>
+    <TableRow hover role="checkbox" tabIndex={-1} key={data.BATCH_ID}>
       {columns.map((column) => {
         const value = data[column.id];
         return (
@@ -27,7 +27,7 @@ const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
           </TableCell>
         );
       })}
-          <TableCell key={"action"} align={"center"}>
+          <TableCell key={"ACTION"} align={"center"}>
           <>
             <button type="submit">Save</button>
             <button type="button" onClick={handleCancelClick}>
