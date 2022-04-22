@@ -4,27 +4,50 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
 const ReadRow = ({ data, handleEditClick }) => {
+  const convertFlagValue = (columnName, value) => {
+    if (columnName === "FLAG") {
+      switch (value) {
+        case 0:
+          value = "include";
+          break;
+        case 1:
+          value = "exclude";
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (columnName === "VARIANT") {
+      if (value == null) {
+        value = "-";
+      }
+    }
+    return value;
+  };
 
   return (
-    <TableRow hover role="checkbox" tabIndex={-1} key={data.batchID}>
+    <TableRow hover role="checkbox" tabIndex={-1} key={data.BATCH_ID}>
       {columns.map((column) => {
         const value = data[column.id];
         return (
           <TableCell key={column.id} align={column.align}>
-            { value }
+            {convertFlagValue(column.id, value)}
           </TableCell>
         );
       })}
-          <TableCell key={"action"} align={"center"}>
-          <>
-              <button
-                type="button"
-                onClick={(event) => handleEditClick(event, data)}
-              >
-                Edit
-              </button>
-          </>
-          </TableCell>
+				{ data && 
+      <TableCell key={"ACTION"} align={"center"}>
+        <>
+          <button
+            type="button"
+            onClick={(event) => handleEditClick(event, data)}
+          >
+            Edit
+          </button>
+        </>
+      </TableCell>
+												}
     </TableRow>
   );
 };
