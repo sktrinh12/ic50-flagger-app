@@ -1,42 +1,42 @@
 [
   {
-    "id": 1,
-    "experimentID": "140124",
-    "batchID": "FT001646",
-    "target": "FGFR2",
-    "variant": "V564F",
-		"flag": "include"
+    "ID": 1,
+    "EXPERIMENT_ID": "140124",
+    "BATCH_ID": "FT001646",
+    "TARGET": "FGFR2",
+    "VARIANT": "V564F",
+		"FLAG": "include"
   },
   {
-    "id": 2,
-    "experimentID": "139365",
-    "batchID": "FT000957-01",
-    "target": "FGFR2",
-    "variant": "C491F",
-		"flag": "include"
+    "ID": 2,
+    "EXPERIMENT_ID": "139365",
+    "BATCH_ID": "FT000957-01",
+    "TARGET": "FGFR2",
+    "VARIANT": "C491F",
+		"FLAG": "include"
   },
   {
-    "id": 3,
-    "experimentID": "138679",
-    "batchID": "FT000101-01",
-    "target": "CDK2",
-    "variant": "None",
-		"flag": "exclude"
+    "ID": 3,
+    "EXPERIMENT_ID": "138679",
+    "BATCH_ID": "FT000101-01",
+    "TARGET": "CDK2",
+    "VARIANT": "None",
+		"FLAG": "exclude"
   },
   {
-    "id": 4,
-    "experimentID": "138677",
-    "batchID": "FT00356-01",
-    "target": "CDK12",
-    "variant": "None",
-		"flag": "exclude"
+    "ID": 4,
+    "EXPERIMENT_ID": "138677",
+    "BATCH_ID": "FT00356-01",
+    "TARGET": "CDK12",
+    "VARIANT": "None",
+		"FLAG": "exclude"
   },
   {
-    "id": 5,
-    "experimentID": "138674",
-    "batchID": "FT00356-01",
-    "target": "CDK2",
-    "variant": "None",
-		"flag": "include"
+    "ID": 5,
+    "EXPERIMENT_ID": "138674",
+    "BATCH_ID": "FT00356-01",
+    "TARGET": "CDK2",
+    "VARIANT": "None",
+		"FLAG": "include"
   }
 ]
