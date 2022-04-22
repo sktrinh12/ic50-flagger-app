@@ -54,22 +54,24 @@ def get_table_data(cmp_id, type):
         elif type == 'biochem':
             sql_stmt += "TEST_BIOCHEM_IC50_FLAGS"
 
-        sql_stmt += f" WHERE BATCH_ID LIKE '{cmp_id}%'"
+        sql_stmt += f" WHERE BATCH_ID LIKE '{cmp_id}%' ORDER BY EXPERIMENT_ID, TARGET"
         # print(sql_stmt)
 
         with con.cursor() as cursor:
             cursor.execute(sql_stmt)
             output = cursor.fetchall()
-            assert output, f"No data fetched for {cmp_id}"
+            if not output: 
+                print(f"No data fetched for {cmp_id}")
+                return []
             output_lst = []
-            for r in output:
+            for i,r in enumerate(output):
                 output_dct = {}
+                output_dct['ID'] = i
                 output_dct['EXPERIMENT_ID'] = r[0]
                 output_dct['BATCH_ID'] = r[1]
                 output_dct['TARGET'] = r[2]
                 output_dct['VARIANT'] = r[3]
                 output_dct['FLAG'] = r[4]
-                output_dct['PROP1'] = int(r[5])
                 output_lst.append(output_dct)
         return output_lst
 
@@ -91,8 +93,7 @@ def update_table_data(payload):
                          WHERE BATCH_ID = '{payload["BATCH_ID"]}'
                          AND EXPERIMENT_ID = '{payload["EXPERIMENT_ID"]}'
                          AND TARGET = '{payload["TARGET"]}'
-                         AND VARIANT {'IS NULL' if payload["VARIANT"] == 'None' else f"= '{payload['VARIANT']}'"}
-                         AND PROP1 = {payload["PROP1"]}
+                         AND VARIANT {'IS NULL' if payload["VARIANT"] == 'None' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
                      """
         print(sql_stmt)
 
