@@ -1,25 +1,61 @@
-import { useState } from "react";
-import data from "../mock-data.json";
+import { useEffect, useState } from "react";
 import ReadRow from "./ReadRow";
+// import NotFound from "./NotFound";
 import EditableRow from "./EditableRow";
 import { columns } from "./TableColumns";
-import * as React from 'react';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
+import * as React from "react";
+import axios from "axios";
+import { useSearchParams } from "react-router-dom";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
 
 export default function DisplayTable() {
-
-  const [tableData, setTableData] = useState(data);
+  const [tableData, setTableData] = useState([
+    {
+      ID: null,
+      EXPERIMENT_ID: null,
+      BATCH_ID: null,
+      TARGET: null,
+      VARIANT: null,
+      FLAG: null,
+    },
+  ]);
 
   const [flag, setFlag] = useState("");
 
   const [editFlag, setEditFlag] = useState(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const getURL = "http://localhost:8000/v1/get-data?compound_id=";
+
+
+  useEffect(() => {
+  const fetchData = async () => {
+    let newURL = getURL + searchParams.get("compound_id");
+    newURL = newURL + "&type=" + searchParams.get("type");
+    // console.log(`url: ${newURL}`);
+
+    await axios
+      .get(newURL)
+      .then((res) => {
+        const json = res.data;
+        // console.log(json);
+        setTableData(json);
+      })
+      .catch((err) => {
+        console.log("AXIOS ERROR: ", err);
+      });
+  };
+    fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEditFormChange = (event) => {
     event.preventDefault();
@@ -28,13 +64,12 @@ export default function DisplayTable() {
     const flagValue = event.target.value;
     console.log(`the target value: ${flagValue}`);
 
-    const index = tableData.findIndex((tdata) => tdata.id === editFlag);
-    const newTableData = [...tableData]
-    newTableData[index]["flag"] = flagValue;
-    console.log(newTableData);
+    const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
+    const newTableData = [...tableData];
+    newTableData[index]["FLAG"] = flagValue;
+    // console.log(newTableData);
 
     setFlag(flagValue);
-    // console.log(`flag val: ${flag}`);
 
     setTableData(newTableData);
   };
@@ -42,21 +77,45 @@ export default function DisplayTable() {
   const handleEditFormSubmit = (event) => {
     event.preventDefault();
 
+    const url = "http://localhost:8000/v1/update-data";
     const newTableData = [...tableData];
 
-    const index = tableData.findIndex((tdata) => tdata.id === editFlag);
+    const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
 
-    console.log(`flag: ${flag}`);
-    newTableData[index]["flag"] = flag;
+    // console.log(`flag: ${flag}`);
+    newTableData[index]["FLAG"] = flag;
     setTableData(newTableData);
     setEditFlag(null);
+    let postData = Object.assign({}, newTableData[index]);
+    postData["TYPE"] = "biochem";
+    postData["PROP1"] = 12;
+    postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
+    console.log(postData);
+
+    let axiosConfig = {
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    };
+
+    axios
+      .post(url, postData, axiosConfig)
+      .then((res) => {
+        console.log("RESPONSE RECEIVED: ", res);
+      })
+      .catch((err) => {
+        console.log("AXIOS ERROR: ", err);
+      });
   };
 
   const handleEditClick = (event, tdata) => {
     event.preventDefault();
-    setEditFlag(tdata.id);
+    setEditFlag(tdata.ID);
 
-    const flagValue = tdata.flag;
+    let flagValue = tdata.FLAG;
+    flagValue = flagValue === 0 ? "include" : "exclude";
+    // console.log(flagValue);
 
     setFlag(flagValue);
   };
@@ -65,7 +124,7 @@ export default function DisplayTable() {
     setEditFlag(null);
   };
 
-  // MUI TABLE 
+  // MUI TABLE
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -81,7 +140,7 @@ export default function DisplayTable() {
   return (
     <div className="app-container">
       <form onSubmit={handleEditFormSubmit}>
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <TableContainer sx={{ maxHeight: 440 }}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
@@ -90,15 +149,25 @@ export default function DisplayTable() {
                     <TableCell
                       key={column.id}
                       align={column.align}
-                      style={{ minWidth: column.minWidth, fontWeight: column.fontWeight, backgroundColor: column.backgroundColor, color: column.color }}
+                      style={{
+                        minWidth: column.minWidth,
+                        fontWeight: column.fontWeight,
+                        backgroundColor: column.backgroundColor,
+                        color: column.color,
+                      }}
                     >
                       {column.label}
                     </TableCell>
                   ))}
                   <TableCell
-                    key={"action"}
+                    key={"ACTION"}
                     align={"center"}
-                    style={{ minWidth: 170, fontWeight: 'bold', backgroundColor: '#343990ff', color: '#efeff6ff' }}
+                    style={{
+                      minWidth: 170,
+                      fontWeight: "bold",
+                      backgroundColor: "#343990ff",
+                      color: "#efeff6ff",
+                    }}
                   >
                     Action
                   </TableCell>
@@ -107,9 +176,9 @@ export default function DisplayTable() {
               <TableBody>
                 {tableData
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((tdata) =>
+                  .map((tdata) => (
                     <>
-                      {editFlag === tdata.id ? (
+                      {editFlag === tdata.ID ? (
                         <EditableRow
                           data={tdata}
                           handleEditFormChange={handleEditFormChange}
@@ -123,7 +192,7 @@ export default function DisplayTable() {
                         />
                       )}
                     </>
-                  )}
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
