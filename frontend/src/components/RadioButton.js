@@ -9,7 +9,7 @@ export default function RadioButtonsGroup( {flagValue, handleEditFormChange} ) {
 
   return (
     <FormControl>
-      <FormLabel id="demo-controlled-radio-buttons-group"></FormLabel>
+      <FormLabel></FormLabel>
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"
