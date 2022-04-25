@@ -1,6 +1,7 @@
 import cx_Oracle
+from os import getenv
 
-oracle_dir = '/Users/spencer.trinhkinnate.com/instantclient_12_2/'
+oracle_dir = getenv('ORACLE_HOME', '/Users/spencer.trinhkinnate.com/instantclient_12_2/')
 
 cx_Oracle.init_oracle_client(lib_dir=oracle_dir)
 
