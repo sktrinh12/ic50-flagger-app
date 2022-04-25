@@ -7,11 +7,11 @@ def update_flag(rowdata_dct):
     assert len(rowdata_dct.keys()) > 5,\
         f"The current row data seems empty, data length: {len(rowdata_dct)}"
 
-    with OracleConnection(cred_dct['username_userdata'],
-                          cred_dct['password_userdata'],
-                          cred_dct['host'],
-                          cred_dct['port'],
-                          cred_dct['sid']) as con:
+    with OracleConnection(cred_dct['USERNAME'],
+                          cred_dct['PASSWORD'],
+                          cred_dct['HOST'],
+                          cred_dct['PORT'],
+                          cred_dct['SID']) as con:
 
         sql_stmt = """UPDATE TEST_BIOCHEM_IC50_FLAGS SET FLAG = :1,
                             WHERE EXPERIMENT_ID = :2
@@ -42,11 +42,11 @@ def update_flag(rowdata_dct):
 def get_table_data(cmp_id, type):
 
     output = None
-    with OracleConnection(cred_dct['username_userdata'],
-                          cred_dct['password_userdata'],
-                          cred_dct['host'],
-                          cred_dct['port'],
-                          cred_dct['sid']) as con:
+    with OracleConnection(cred_dct['USERNAME'],
+                          cred_dct['PASSWORD'],
+                          cred_dct['HOST'],
+                          cred_dct['PORT'],
+                          cred_dct['SID']) as con:
 
         sql_stmt = "SELECT * FROM DS3_USERDATA."
         if type == 'cellular':
@@ -77,11 +77,11 @@ def get_table_data(cmp_id, type):
 
 def update_table_data(payload):
 
-    with OracleConnection(cred_dct['username_userdata'],
-                          cred_dct['password_userdata'],
-                          cred_dct['host'],
-                          cred_dct['port'],
-                          cred_dct['sid']) as con:
+    with OracleConnection(cred_dct['USERNAME'],
+                          cred_dct['PASSWORD'],
+                          cred_dct['HOST'],
+                          cred_dct['PORT'],
+                          cred_dct['SID']) as con:
 
         sql_stmt = "UPDATE DS3_USERDATA."
         if payload['TYPE'] == 'cellular':
