@@ -169,5 +169,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# exclude the combodb csv file
-drugcombs_response.csv
+# exclude the instantclient files (zips)
+instantclient-basiclite-linux.x64-12.2.0.1.0.zip
+instantclient-sdk-linux.x64-12.2.0.1.0.zip
+
+
+
+
