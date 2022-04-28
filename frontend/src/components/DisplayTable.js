@@ -16,6 +16,7 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 
 export default function DisplayTable() {
+  const { REACT_APP_BACKEND_URL } = process.env;
   const [tableData, setTableData] = useState([
     {
       ID: null,
@@ -26,6 +27,7 @@ export default function DisplayTable() {
       FLAG: null,
     },
   ]);
+  // console.log(REACT_APP_BACKEND_URL);
 
   const [flag, setFlag] = useState("");
 
@@ -33,7 +35,7 @@ export default function DisplayTable() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const getURL = "http://localhost:8000/v1/get-data?compound_id=";
+  const getURL = `${REACT_APP_BACKEND_URL}/v1/get-data?compound_id=`;
 
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function DisplayTable() {
   const handleEditFormSubmit = (event) => {
     event.preventDefault();
 
-    const url = "http://localhost:8000/v1/update-data";
+    const url = `${REACT_APP_BACKEND_URL}/v1/update-data`;
     const newTableData = [...tableData];
 
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
@@ -88,7 +90,7 @@ export default function DisplayTable() {
     setEditFlag(null);
     let postData = Object.assign({}, newTableData[index]);
     postData["TYPE"] = "biochem";
-    postData["PROP1"] = 12;
+    // postData["PROP1"] = 12;
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
 
