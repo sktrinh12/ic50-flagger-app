@@ -37,6 +37,14 @@ export default function DisplayTable() {
 
   const getURL = `${REACT_APP_BACKEND_URL}/v1/get-data?compound_id=`;
 
+  const axiosConfig = {
+      withCredentials: false,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods":"GET,PUT,POST"
+      }
+  };
 
   useEffect(() => {
   const fetchData = async () => {
@@ -45,7 +53,7 @@ export default function DisplayTable() {
     // console.log(`url: ${newURL}`);
 
     await axios
-      .get(newURL)
+      .get(newURL, axiosConfig)
       .then((res) => {
         const json = res.data;
         // console.log(json);
@@ -93,13 +101,6 @@ export default function DisplayTable() {
     // postData["PROP1"] = 12;
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
-
-    let axiosConfig = {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "Access-Control-Allow-Origin": "*",
-      },
-    };
 
     axios
       .post(url, postData, axiosConfig)
