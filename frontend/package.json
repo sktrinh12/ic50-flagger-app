@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "REACT_APP_BACKEND_URL=\"http://localhost:8000\" react-scripts start",
-    "build": "REACT_APP_BACKEND_URL=\"http://geomean-flagger-backend-svc:8000\" react-scripts build",
+    "build": "REACT_APP_BACKEND_URL=\"http://backend-svc:8000\" react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
