@@ -35,7 +35,7 @@ export default function DisplayTable() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const getURL = `${REACT_APP_BACKEND_URL}/v1/get-data?compound_id=`;
+  const getURL = `${REACT_APP_BACKEND_URL}/v1/fetch-data?compound_id=`;
 
   const axiosConfig = {
       withCredentials: false,
@@ -72,7 +72,7 @@ export default function DisplayTable() {
 
     // console.log(tableData);
     const flagValue = event.target.value;
-    console.log(`the target value: ${flagValue}`);
+    // console.log(`the target value: ${flagValue}`);
 
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
     const newTableData = [...tableData];
@@ -87,7 +87,7 @@ export default function DisplayTable() {
   const handleEditFormSubmit = (event) => {
     event.preventDefault();
 
-    const url = `${REACT_APP_BACKEND_URL}/v1/update-data`;
+    const url = `${REACT_APP_BACKEND_URL}/v1/change-data`;
     const newTableData = [...tableData];
 
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
@@ -144,7 +144,7 @@ export default function DisplayTable() {
     <div className="app-container">
       <form onSubmit={handleEditFormSubmit}>
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
-          <TableContainer sx={{ maxHeight: 440 }}>
+          <TableContainer sx={{ maxHeight: 740 }}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
                 <TableRow>
@@ -166,7 +166,7 @@ export default function DisplayTable() {
                     key={"ACTION"}
                     align={"center"}
                     style={{
-                      minWidth: 170,
+                      minWidth: 30,
                       fontWeight: "bold",
                       backgroundColor: "#343990ff",
                       color: "#efeff6ff",
