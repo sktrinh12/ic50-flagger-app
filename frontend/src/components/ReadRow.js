@@ -23,6 +23,10 @@ const ReadRow = ({ data, handleEditClick }) => {
         value = "-";
       }
     }
+
+    if (columnName === "PLOT") {
+      return <img src={"data:image/png;base64, " + value} alt="EMPTY GRAPH" />;
+    }
     return value;
   };
 
@@ -36,18 +40,18 @@ const ReadRow = ({ data, handleEditClick }) => {
           </TableCell>
         );
       })}
-				{ data && 
-      <TableCell key={"ACTION"} align={"center"}>
-        <>
-          <button
-            type="button"
-            onClick={(event) => handleEditClick(event, data)}
-          >
-            Edit
-          </button>
-        </>
-      </TableCell>
-												}
+      {data && (
+        <TableCell key={"ACTION"} align={"center"}>
+          <>
+            <button
+              type="button"
+              onClick={(event) => handleEditClick(event, data)}
+            >
+              Edit
+            </button>
+          </>
+        </TableCell>
+      )}
     </TableRow>
   );
 };
