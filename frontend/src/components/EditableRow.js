@@ -5,11 +5,18 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
 const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
+  const base64regex =
+    /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
   const renderContent = (param) => {
     return (
       <>
-        { [0, 1, "include", "exclude"].includes(param) ? (
-				<RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
+        {[0, 1, "include", "exclude"].includes(param) ? (
+          <RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
+        ) : base64regex.test(param) ? (
+          <img
+            src={"data:image/png;base64, " + param}
+            alt="EMPTY GRAPH"
+          ></img>
         ) : (
           param
         )}
@@ -27,14 +34,14 @@ const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
           </TableCell>
         );
       })}
-          <TableCell key={"ACTION"} align={"center"}>
-          <>
-            <button type="submit">Save</button>
-            <button type="button" onClick={handleCancelClick}>
-              Cancel
-            </button>
-          </>
-          </TableCell>
+      <TableCell key={"ACTION"} align={"center"}>
+        <>
+          <button type="submit">Save</button>
+          <button type="button" onClick={handleCancelClick}>
+            Cancel
+          </button>
+        </>
+      </TableCell>
     </TableRow>
   );
 };
