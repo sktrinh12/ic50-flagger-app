@@ -6,7 +6,9 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",
-    "localhost:3000"
+    "localhost:3000",
+    "http://geomean.frontend.kinnate",
+    "geomean.frontend.kinnate"
 ]
 
 app.add_middleware(
@@ -21,14 +23,14 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/v1/get-data", tags=["get-data"])
+@app.get("/v1/fetch-data", tags=["get-data"])
 async def get_data(compound_id: str, type: str) -> Response:
     if not compound_id.startswith('FT') and len(compound_id) != 8:
         raise HTTPException(status_code=404, detail=f"{compound_id} is invalid")
     results = get_table_data(compound_id, type)
     return results
 
-@app.post("/v1/update-data", tags=["post-data"])
+@app.post("/v1/change-data", tags=["post-data"])
 async def update_data(request: Request):
     payload = await request.json()
     if not payload["BATCH_ID"].startswith('FT') and \
