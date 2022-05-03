@@ -175,3 +175,6 @@ instantclient-sdk-linux.x64-12.2.0.1.0.zip
 
 # exclude custom script
 update.sh
+
+# exclude nginx.conf since no longer using it (simple sed cmd in Dockerfile)
+nginx.conf
