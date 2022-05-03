@@ -173,6 +173,5 @@ cython_debug/
 instantclient-basiclite-linux.x64-12.2.0.1.0.zip
 instantclient-sdk-linux.x64-12.2.0.1.0.zip
 
-
-
-
+# exclude custom script
+update.sh
