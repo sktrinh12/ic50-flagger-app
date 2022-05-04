@@ -12,6 +12,7 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import TablePagination from "@mui/material/TablePagination";
+import Box from "@mui/material/Box";
 import { sortedRowInformation, getComparator } from "./TableSortFunctions";
 
 export default function DisplayTable() {
@@ -30,6 +31,7 @@ export default function DisplayTable() {
 
   const [flag, setFlag] = useState("");
   const [editFlag, setEditFlag] = useState(null);
+  // eslint-disable-next-line
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   // MUI TABLE
@@ -100,7 +102,6 @@ export default function DisplayTable() {
     setEditFlag(null);
     let postData = Object.assign({}, newTableData[index]);
     postData["TYPE"] = "biochem";
-    // postData["PROP1"] = 12;
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
 
@@ -147,16 +148,25 @@ export default function DisplayTable() {
   return (
     <>
       {loading ? (
-        <ReactLoading
-          type="spin"
-          color="#2E86C1"
-          height={667}
-          width={375}
-          margin="auto"
-          padding="10px"
-        />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <ReactLoading
+            type="spin"
+            color="#2E86C1"
+            height={667}
+            width={375}
+            margin="auto"
+            padding="10px"
+          />
+        </Box>
       ) : (
-        <div className="app-container">
+          <Box sx={{ width: '100%' }}>
           <form onSubmit={handleEditFormSubmit}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
               <TableContainer sx={{ maxHeight: 740 }}>
@@ -175,10 +185,11 @@ export default function DisplayTable() {
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage
                       )
-                      .map((tdata) => (
-                        <>
-                          {editFlag === tdata.ID ? (
+                      .map((tdata, i) => (
+                        <React.Fragment key={i}>
+                           {editFlag === tdata.ID ? (
                             <EditableRow
+                              keyValue={`${tdata.BATCH_ID}-${i}`}
                               data={tdata}
                               handleEditFormChange={handleEditFormChange}
                               flagValue={flag}
@@ -186,11 +197,12 @@ export default function DisplayTable() {
                             />
                           ) : (
                             <ReadRow
+                              keyValue={`${tdata.BATCH_ID}-${i}`}
                               data={tdata}
                               handleEditClick={handleEditClick}
                             />
                           )}
-                        </>
+                        </React.Fragment>
                       ))}
                   </TableBody>
                 </Table>
@@ -206,7 +218,7 @@ export default function DisplayTable() {
               />
             </Paper>
           </form>
-        </div>
+        </Box>
       )}
     </>
   );
