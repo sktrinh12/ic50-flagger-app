@@ -18,7 +18,7 @@ const ReadRow = ({ data, handleEditClick }) => {
       }
     }
 
-    if (columnName === "VARIANT") {
+    if (["VARIANT", "COFACTORS"].includes(columnName)) {
       if (value == null) {
         value = "-";
       }
