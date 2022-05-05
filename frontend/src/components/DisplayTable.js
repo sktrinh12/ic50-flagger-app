@@ -189,7 +189,7 @@ export default function DisplayTable() {
                         <React.Fragment key={i}>
                           {editFlag === tdata.ID ? (
                             <EditableRow
-                              keyValue={`${tdata.BATCH_ID}-${i}`}
+                              keyValue={`${tdata.BATCH_ID}-EDIT-${i}`}
                               data={tdata}
                               handleEditFormChange={handleEditFormChange}
                               flagValue={flag}
@@ -197,7 +197,7 @@ export default function DisplayTable() {
                             />
                           ) : (
                             <ReadRow
-                              keyValue={`${tdata.BATCH_ID}-${i}`}
+                              keyValue={`${tdata.BATCH_ID}-READ-${i}`}
                               data={tdata}
                               handleEditClick={handleEditClick}
                             />
