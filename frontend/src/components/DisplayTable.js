@@ -166,7 +166,7 @@ export default function DisplayTable() {
           />
         </Box>
       ) : (
-          <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: "100%" }}>
           <form onSubmit={handleEditFormSubmit}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
               <TableContainer sx={{ maxHeight: 740 }}>
@@ -187,7 +187,7 @@ export default function DisplayTable() {
                       )
                       .map((tdata, i) => (
                         <React.Fragment key={i}>
-                           {editFlag === tdata.ID ? (
+                          {editFlag === tdata.ID ? (
                             <EditableRow
                               keyValue={`${tdata.BATCH_ID}-${i}`}
                               data={tdata}

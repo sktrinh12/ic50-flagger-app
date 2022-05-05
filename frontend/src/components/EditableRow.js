@@ -33,13 +33,15 @@ const EditableRow = ({
       {columns.map((column, i) => {
         const value = data[column.id];
         return (
-          <TableCell align={column.align}
-            key={`${keyValue}-${i}`}>
+          <TableCell align={column.align} key={`${keyValue}-${i}`}>
             {renderContent(value)}
           </TableCell>
         );
       })}
-      <TableCell align={"center"} key={`ACTION-${parseInt(keyValue.replace( /^\D+/g, ''))+5000}`}>
+      <TableCell
+        align={"center"}
+        key={`ACTION-${parseInt(keyValue.replace(/^\D+/g, "")) + 5000}`}
+      >
         <>
           <button type="submit">Save</button>
           <button type="button" onClick={handleCancelClick}>
