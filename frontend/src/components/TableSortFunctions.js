@@ -2,7 +2,7 @@
 function descendingComparator(a, b, orderBy) {
   // console.log("a", a);
   // console.log("b", b);
-  console.log("orderBy", orderBy);
+  // console.log("orderBy", orderBy);
   if (b[orderBy] < a[orderBy]) {
     // console.log("-1");
     return -1;
