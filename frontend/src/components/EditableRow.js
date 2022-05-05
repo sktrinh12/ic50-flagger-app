@@ -4,7 +4,12 @@ import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
-const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
+const EditableRow = ({
+  keyValue,
+  data,
+  handleEditFormChange,
+  handleCancelClick,
+}) => {
   const renderContent = (param) => {
     return (
       <>
@@ -24,16 +29,17 @@ const EditableRow = ({ data, handleEditFormChange, handleCancelClick }) => {
   };
 
   return (
-    <TableRow hover role="checkbox" tabIndex={-1} key={data.BATCH_ID}>
-      {columns.map((column) => {
+    <TableRow hover role="checkbox" tabIndex={-1} key={keyValue}>
+      {columns.map((column, i) => {
         const value = data[column.id];
         return (
-          <TableCell key={column.id} align={column.align}>
+          <TableCell align={column.align}
+            key={`${keyValue}-${i}`}>
             {renderContent(value)}
           </TableCell>
         );
       })}
-      <TableCell key={"ACTION"} align={"center"}>
+      <TableCell align={"center"} key={`ACTION-${parseInt(keyValue.replace( /^\D+/g, ''))+5000}`}>
         <>
           <button type="submit">Save</button>
           <button type="button" onClick={handleCancelClick}>

@@ -3,8 +3,8 @@ import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
-const ReadRow = ({ data, handleEditClick }) => {
-  const convertFlagValue = (columnName, value) => {
+const ReadRow = ({ keyValue, data, handleEditClick }) => {
+  const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
         case 0:
@@ -31,17 +31,22 @@ const ReadRow = ({ data, handleEditClick }) => {
   };
 
   return (
-    <TableRow hover role="checkbox" tabIndex={-1} key={data.BATCH_ID}>
-      {columns.map((column) => {
+    <TableRow hover role="checkbox" tabIndex={-1} key={keyValue}>
+      {columns.map((column, i) => {
         const value = data[column.id];
         return (
-          <TableCell key={column.id} align={column.align}>
-            {convertFlagValue(column.id, value)}
+          <TableCell align={column.align} key={`${keyValue}-${i}`}>
+            {handleDynamicValue(column.id, value)}
           </TableCell>
         );
       })}
       {data && (
-        <TableCell key={"ACTION"} align={"center"}>
+        <TableCell
+          align={"center"}
+          key={`ACTION-${keyValue}-${
+            parseInt(keyValue.split("-")[2].replace(/^\D+/g, "")) + 5000
+          }`}
+        >
           <>
             <button
               type="button"
