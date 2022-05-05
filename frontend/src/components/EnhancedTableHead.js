@@ -3,15 +3,9 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import Box from "@mui/material/Box";
-import { visuallyHidden } from "@mui/utils";
 
 export default function EnhancedTableHead(props) {
-  const {
-    order,
-    orderBy,
-    onRequestSort,
-  } = props;
+  const { order, orderBy, onRequestSort } = props;
 
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
@@ -24,7 +18,6 @@ export default function EnhancedTableHead(props) {
           <TableCell
             key={column.id}
             align={column.align}
-            sortDirection={orderBy === column.id ? order : false}
             style={{
               minWidth: column.minWidth,
               fontWeight: column.fontWeight,
@@ -32,18 +25,17 @@ export default function EnhancedTableHead(props) {
               color: column.color,
             }}
           >
-            <TableSortLabel
-              active={orderBy === column.id}
-              direction={orderBy === column.id ? order : "asc"}
-              onClick={createSortHandler(column.id)}
-            >
-              {column.label}
-              {orderBy === column.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </Box>
-              ) : null}
-            </TableSortLabel>
+            {["PLOT", "FLAG"].includes(column.id) ? (
+              column.label
+            ) : (
+              <TableSortLabel
+                active={orderBy === column.id}
+                direction={orderBy === column.id ? order : "asc"}
+                onClick={createSortHandler(column.id)}
+              >
+                {column.label}
+              </TableSortLabel>
+            )}
           </TableCell>
         ))}
         <TableCell
