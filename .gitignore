@@ -178,3 +178,6 @@ update.sh
 
 # exclude nginx.conf since no longer using it (simple sed cmd in Dockerfile)
 nginx.conf
+
+# exclude bkup files
+*.bk
