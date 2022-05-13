@@ -27,18 +27,17 @@ export default function DisplayTable() {
       FLAG: null,
     },
   ]);
-  // console.log(REACT_APP_BACKEND_URL);
-
   const [flag, setFlag] = useState("");
   const [editFlag, setEditFlag] = useState(null);
   // eslint-disable-next-line
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [columnLoading, setColumnLoading] = useState(false);
   // MUI TABLE
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("BATCH_ID");
+  const [orderBy, setOrderBy] = useState("ID");
   const getURL = `${REACT_APP_BACKEND_URL}/v1/fetch-data?compound_id=`;
 
   const axiosConfig = {
@@ -50,64 +49,120 @@ export default function DisplayTable() {
     },
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      let newURL = getURL + searchParams.get("compound_id");
-      newURL = newURL + "&type=" + searchParams.get("type");
-      // console.log(`url: ${newURL}`);
+  const fetchData = async (getMRows = false, mRows = null, indices = null) => {
+    const compound_id = searchParams.get("compound_id");
+    let newURL = getURL + compound_id;
+    newURL = newURL + "&type=" + searchParams.get("type");
+    newURL = newURL + "&sql_type=" + searchParams.get("sql_type");
+    newURL = newURL + "&get_mnum_rows=" + getMRows;
+    if (mRows) {
+      newURL += `&target=${mRows.TARGET}`;
+      newURL += `&variant=${mRows.VARIANT}`;
+      newURL += `&cofactors=${mRows.COFACTORS}`;
+      newURL += `&assay=${mRows.ASSAY_TYPE}`;
+      newURL += `&atp_conc=${mRows.ATP_CONC_UM}`;
+      newURL += `&modifier=${mRows.MODIFIER}`;
+      newURL += `&cro=${mRows.CRO}`;
+    }
+    // console.log(`url: ${newURL}`);
 
-      await axios
-        .get(newURL, axiosConfig)
-        .then((res) => {
-          const json = res.data;
-          // console.log(json);
-          setTableData(json);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.log("AXIOS ERROR: ", err);
-        });
-    };
+    await axios
+      .get(newURL, axiosConfig)
+      .then(async (res) => {
+        const json = res.data;
+        // console.log(json);
+        if (res.status === 200) {
+          getMRows ? setMrowsData(json, indices) : setTableData(json);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log("AXIOS ERROR: ", err);
+      });
+  };
+
+  useEffect(() => {
+    // alert('testing');
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const setMrowsData = (rows, indices) => {
+    console.log(rows);
+    console.log("------------");
+    // console.log(columnLoading);
+    for (let i = 0; i < indices.length; i++) {
+      let idx = indices[i];
+      // console.log(idx);
+      tableData[idx].GEOMEAN = rows.filter((e) =>
+        e.PROP1 === tableData[idx].PROP1 &&
+        e.FLAG === (tableData[idx].FLAG === "include")
+          ? 0
+          : 1 &&
+            e.IC50_NM === tableData[idx].IC50_NM &&
+            e.TARGET === tableData[idx].TARGET &&
+            e.VARIANT === tableData[idx].VARIANT &&
+            e.BATCH_ID === tableData[idx].BATCH_ID &&
+            e.EXPERIMENT_ID === tableData[idx].EXPERIMENT_ID
+      )[0].GEOMEAN;
+    }
+    // console.log(tableData);
+    setTableData(tableData);
+    setColumnLoading(false);
+  };
+
   const handleEditFormChange = (event) => {
     event.preventDefault();
-
-    // console.log(tableData);
     const flagValue = event.target.value;
     // console.log(`the target value: ${flagValue}`);
-
-    const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
-    const newTableData = [...tableData];
-    newTableData[index]["FLAG"] = flagValue;
+    // const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
+    // const newTableData = [...tableData];
+    // newTableData[index]["FLAG"] = flagValue;
     // console.log(newTableData);
-
     setFlag(flagValue);
-    setTableData(newTableData);
   };
 
   const handleEditFormSubmit = (event) => {
     event.preventDefault();
+    const type = searchParams.get("type");
+    // console.log(`type: ${type}`);
 
-    const url = `${REACT_APP_BACKEND_URL}/v1/change-data`;
+    const url = `${REACT_APP_BACKEND_URL}/v1/change-data?sql_type=update&type=${type}`;
     const newTableData = [...tableData];
-
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
 
     // console.log(`flag: ${flag}`);
     newTableData[index]["FLAG"] = flag;
-    setTableData(newTableData);
     setEditFlag(null);
     let postData = Object.assign({}, newTableData[index]);
-    postData["TYPE"] = "biochem";
+    postData["TYPE"] = type; //"biochem";
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
+
+    let indices = newTableData
+      .map((td, i) =>
+        td.COMPOUND_ID === postData.COMPOUND_ID &&
+        td.CRO === postData.CRO &&
+        td.ASSAY_TYPE === postData.ASSAY_TYPE &&
+        td.TARGET === postData.TARGET &&
+        td.VARIANT === postData.VARIANT &&
+        td.MODIFIER === postData.MODIFIER &&
+        td.COFACTORS === postData.COFACTORS
+          ? i
+          : null
+      )
+      .filter((e) => e !== null);
+    console.log("indices");
+    console.log(indices);
+    setColumnLoading(true);
 
     axios
       .post(url, postData, axiosConfig)
       .then((res) => {
+        if (res.status === 200) {
+          fetchData(true, postData, indices);
+          // fetchData();
+        }
         console.log("RESPONSE RECEIVED: ", res);
       })
       .catch((err) => {
@@ -199,6 +254,7 @@ export default function DisplayTable() {
                             <ReadRow
                               keyValue={`${tdata.BATCH_ID}-READ-${i}`}
                               data={tdata}
+                              columnLoading={columnLoading}
                               handleEditClick={handleEditClick}
                             />
                           )}
