@@ -2,8 +2,10 @@ import { columns } from "./TableColumns";
 import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import ReactLoading from "react-loading";
 
-const ReadRow = ({ keyValue, data, handleEditClick }) => {
+const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
+  // console.log(`readrow colm load: ${columnLoading}`);
   const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
@@ -31,12 +33,29 @@ const ReadRow = ({ keyValue, data, handleEditClick }) => {
   };
 
   return (
-    <TableRow hover role="checkbox" tabIndex={-1} key={keyValue}>
+    <TableRow
+      hover
+      role="checkbox"
+      tabIndex={-1}
+      key={keyValue}
+      selected={columnLoading}
+    >
       {columns.map((column, i) => {
         const value = data[column.id];
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
-            {handleDynamicValue(column.id, value)}
+            {columnLoading && column.id === "GEOMEAN" ? (
+              <ReactLoading
+                type="spin"
+                color="#2E86C1"
+                height={30}
+                width={30}
+                margin="auto"
+                padding="0px"
+              />
+            ) : (
+              handleDynamicValue(column.id, value)
+            )}
           </TableCell>
         );
       })}
