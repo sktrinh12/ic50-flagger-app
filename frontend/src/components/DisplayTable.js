@@ -230,6 +230,7 @@ export default function DisplayTable() {
                     order={order}
                     orderBy={orderBy}
                     onRequestSort={handleRequestSort}
+                    type={searchParams.get("type")}
                   />
                   <TableBody>
                     {sortedRowInformation(
