@@ -32,7 +32,7 @@ export default function DisplayTable() {
   // eslint-disable-next-line
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [columnLoading, setColumnLoading] = useState(false);
+  const [columnLoading, setColumnLoading] = useState([]);
   // MUI TABLE
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -52,19 +52,29 @@ export default function DisplayTable() {
   const fetchData = async (getMRows = false, mRows = null, indices = null) => {
     const compound_id = searchParams.get("compound_id");
     let newURL = getURL + compound_id;
-    newURL = newURL + "&type=" + searchParams.get("type");
+    let dtype = searchParams.get("type");
+    newURL = newURL + "&type=" + dtype;
     newURL = newURL + "&sql_type=" + searchParams.get("sql_type");
     newURL = newURL + "&get_mnum_rows=" + getMRows;
     if (mRows) {
-      newURL += `&target=${mRows.TARGET}`;
       newURL += `&variant=${mRows.VARIANT}`;
-      newURL += `&cofactors=${mRows.COFACTORS}`;
+      newURL += `&cro=${mRows.CRO}`;
       newURL += `&assay=${mRows.ASSAY_TYPE}`;
+      if (dtype === "biochem") {
+      newURL += `&target=${mRows.TARGET}`;
+      newURL += `&cofactors=${mRows.COFACTORS}`;
       newURL += `&atp_conc=${mRows.ATP_CONC_UM}`;
       newURL += `&modifier=${mRows.MODIFIER}`;
-      newURL += `&cro=${mRows.CRO}`;
+      } 
+      if (dtype === "cellular") {
+      newURL += `&cell_line=${mRows.CELL_LINE}`;
+      newURL += `&pct_serum=${mRows.PCT_SERUM}`;
+      newURL += `&washout=${mRows.WASHOUT}`;
+      newURL += `&cell_incu_hr=${mRows.CELL_INCUBATION_HR}`;
+      newURL += `&passage_nbr=${mRows.PASSAGE_NUMBER}`;
+      }
     }
-    // console.log(`url: ${newURL}`);
+    console.log(`url: ${newURL}`);
 
     await axios
       .get(newURL, axiosConfig)
@@ -82,7 +92,6 @@ export default function DisplayTable() {
   };
 
   useEffect(() => {
-    // alert('testing');
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,25 +99,26 @@ export default function DisplayTable() {
   const setMrowsData = (rows, indices) => {
     console.log(rows);
     console.log("------------");
-    // console.log(columnLoading);
     for (let i = 0; i < indices.length; i++) {
       let idx = indices[i];
-      // console.log(idx);
       tableData[idx].GEOMEAN = rows.filter((e) =>
         e.PROP1 === tableData[idx].PROP1 &&
         e.FLAG === (tableData[idx].FLAG === "include")
           ? 0
           : 1 &&
             e.IC50_NM === tableData[idx].IC50_NM &&
-            e.TARGET === tableData[idx].TARGET &&
+            ('CELL_LINE' in e ? e.CELL_LINE : e.TARGET) === ('CELL_LINE' in e ? tableData[idx].CELL_LINE : tableData[idx].TARGET) &&
+            ('PCT_SERUM' in e ?  e.PCT_SERUM === tableData[idx].PCT_SERUM : null ) && 
             e.VARIANT === tableData[idx].VARIANT &&
+            ('WASHOUT' in e ?  e.WASHOUT === tableData[idx].WASHOUT : null ) &&
+            ('CELL_INCUBATION_HR' in e ? e.CELL_INCUBATION_HR === tableData[idx].CELL_INCUBATION_HR : null) &&
             e.BATCH_ID === tableData[idx].BATCH_ID &&
             e.EXPERIMENT_ID === tableData[idx].EXPERIMENT_ID
       )[0].GEOMEAN;
     }
     // console.log(tableData);
     setTableData(tableData);
-    setColumnLoading(false);
+    setColumnLoading([]);
   };
 
   const handleEditFormChange = (event) => {
@@ -135,7 +145,7 @@ export default function DisplayTable() {
     newTableData[index]["FLAG"] = flag;
     setEditFlag(null);
     let postData = Object.assign({}, newTableData[index]);
-    postData["TYPE"] = type; //"biochem";
+    postData["TYPE"] = type;
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
 
@@ -144,24 +154,28 @@ export default function DisplayTable() {
         td.COMPOUND_ID === postData.COMPOUND_ID &&
         td.CRO === postData.CRO &&
         td.ASSAY_TYPE === postData.ASSAY_TYPE &&
-        td.TARGET === postData.TARGET &&
         td.VARIANT === postData.VARIANT &&
+        ('CELL_LINE' in td ? td.CELL_LINE === postData.CELL_LINE &&
+        td.PCT_SERUM === postData.PCT_SERUM  &&
+        td.WASHOUT === postData.WASHOUT &&
+        td.CELL_INCUBATION_HR === postData.CELL_INCUBATION_HR 
+        :
+        td.TARGET === postData.TARGET && 
         td.MODIFIER === postData.MODIFIER &&
         td.COFACTORS === postData.COFACTORS
+        )
           ? i
           : null
       )
       .filter((e) => e !== null);
-    console.log("indices");
-    console.log(indices);
-    setColumnLoading(true);
+    console.log(`indices: ${indices}`);
+    setColumnLoading(indices);
 
     axios
       .post(url, postData, axiosConfig)
       .then((res) => {
         if (res.status === 200) {
           fetchData(true, postData, indices);
-          // fetchData();
         }
         console.log("RESPONSE RECEIVED: ", res);
       })
@@ -224,7 +238,7 @@ export default function DisplayTable() {
         <Box sx={{ width: "100%" }}>
           <form onSubmit={handleEditFormSubmit}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-              <TableContainer sx={{ maxHeight: 740 }}>
+              <TableContainer sx={{ maxHeight: 1000 }}>
                 <Table stickyHeader aria-label="sticky table">
                   <EnchancedTableHead
                     order={order}
@@ -255,7 +269,7 @@ export default function DisplayTable() {
                             <ReadRow
                               keyValue={`${tdata.BATCH_ID}-READ-${i}`}
                               data={tdata}
-                              columnLoading={columnLoading}
+                              columnLoading={columnLoading.includes(i) ? true : false}
                               handleEditClick={handleEditClick}
                             />
                           )}
