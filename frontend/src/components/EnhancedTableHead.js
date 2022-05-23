@@ -1,20 +1,29 @@
-import { columns } from "./TableColumns";
+// import { columns } from "./TableColumns";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableSortLabel from "@mui/material/TableSortLabel";
 
+// var columns = [];
+
 export default function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } = props;
+  const { order, orderBy, onRequestSort, type } = props;
 
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
+  var DataFields = null;
+
+  if (type === "cellular") {
+    DataFields = require("./TableColumnsCellular");
+  } else {
+    DataFields = require("./TableColumnsBiochem");
+  }
 
   return (
     <TableHead>
       <TableRow>
-        {columns.map((column) => (
+        {DataFields.columns.map((column) => (
           <TableCell
             key={column.id}
             align={column.align}
