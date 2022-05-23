@@ -1,5 +1,5 @@
 import RadioButtonsGroup from "./RadioButton";
-import { columns } from "./TableColumns";
+// import { columns } from "./TableColumns";
 import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
@@ -28,9 +28,16 @@ const EditableRow = ({
     );
   };
 
+  var DataFields = null;
+  if ("WASHOUT" in data) {
+    DataFields = require("./TableColumnsCellular");
+  } else {
+    DataFields = require("./TableColumnsBiochem");
+  }
+
   return (
     <TableRow hover role="checkbox" tabIndex={-1} key={keyValue}>
-      {columns.map((column, i) => {
+      {DataFields.columns.map((column, i) => {
         const value = data[column.id];
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>

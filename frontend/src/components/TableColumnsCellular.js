@@ -60,6 +60,14 @@ module.exports = {
       color: "#efeff6ff",
     },
     {
+      id: "PASSAGE_NUMBER",
+      label: "Passage #",
+      minWidth: 50,
+      fontWeight: "bold",
+      backgroundColor: "#343990ff",
+      color: "#efeff6ff",
+    },
+    {
       id: "WASHOUT",
       label: "Washout",
       minWidth: 50,

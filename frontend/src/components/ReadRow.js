@@ -1,4 +1,4 @@
-import { columns } from "./TableColumns";
+// import { columns } from "./TableColumns";
 import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
@@ -20,7 +20,7 @@ const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
       }
     }
 
-    if (["VARIANT", "COFACTORS"].includes(columnName)) {
+    if (["VARIANT", "COFACTORS", "PASSAGE_NUMBER"].includes(columnName)) {
       if (value == null) {
         value = "-";
       }
@@ -32,6 +32,13 @@ const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
     return value;
   };
 
+  var DataFields = null;
+  if ("WASHOUT" in data) {
+    DataFields = require("./TableColumnsCellular");
+  } else {
+    DataFields = require("./TableColumnsBiochem");
+  }
+
   return (
     <TableRow
       hover
@@ -40,7 +47,7 @@ const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
       key={keyValue}
       selected={columnLoading}
     >
-      {columns.map((column, i) => {
+      {DataFields.columns.map((column, i) => {
         const value = data[column.id];
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
