@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Response, Request, HTTPException, status
-from typing import Optional
+from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
 from .db import *
 from fastapi.middleware.cors import CORSMiddleware
+from .schemas import BasicSchema
 
 app = FastAPI()
 
@@ -27,39 +27,39 @@ def read_root():
 
 
 @app.get("/v1/fetch-data", tags=["get-data"])
-async def get_data(compound_id: str,
-                   type: str,
-                   sql_type: str,
-                   get_mnum_rows: str,
-                   cro: Optional[str] = None,
-                   assay: Optional[str] = None,
-                   atp_conc: Optional[float] = None,
-                   target: Optional[str] = None,
-                   variant: Optional[str] = None,
-                   cofactors: Optional[str] = None,
-                   modifier: Optional[str] = None
-                   ) -> Response:
-    if not compound_id.startswith('FT') and len(compound_id) != 8:
-        raise HTTPException(status_code=404, detail=f"{compound_id} is invalid")
+async def get_data(mdata: BasicSchema = Depends()): #-> Response:
+    if not mdata.compound_id.startswith('FT') and len(mdata.compound_id) != 8:
+        raise HTTPException(status_code=404, detail=f"{mdata.compound_id} is invalid")
     payload = {}
-    payload['COMPOUND_ID'] = compound_id
-    payload['GET_M_NUM_ROWS'] = eval(get_mnum_rows.title())
-    payload['TYPE'] = type.upper()
-    payload['SQL_TYPE'] = sql_type.upper()
-    if cro:
-        payload['CRO'] = cro
-    if target:
-        payload['TARGET'] = target.upper()
-    if variant:
-        payload['VARIANT'] = variant.upper()
-    if cofactors:
-        payload['COFACTORS'] = cofactors.upper()
-    if assay:
-        payload['ASSAY_TYPE'] = assay
-    if atp_conc:
-        payload['ATP_CONC_UM'] = atp_conc
-    if modifier:
-        payload['MODIFIER'] = modifier.upper()
+    payload['COMPOUND_ID'] = mdata.compound_id
+    payload['GET_M_NUM_ROWS'] = eval(mdata.get_mnum_rows.title())
+    payload['TYPE'] = mdata.type.upper()
+    payload['SQL_TYPE'] = mdata.sql_type.upper()
+    if mdata.cro:
+        payload['CRO'] = mdata.cro
+    if mdata.target:
+        payload['TARGET'] = mdata.target.upper()
+    if mdata.variant:
+        payload['VARIANT'] = mdata.variant.upper()
+    if mdata.cofactors:
+        payload['COFACTORS'] = mdata.cofactors.upper()
+    if mdata.assay:
+        payload['ASSAY_TYPE'] = mdata.assay
+    if mdata.atp_conc:
+        payload['ATP_CONC_UM'] = mdata.atp_conc
+    if mdata.modifier:
+        payload['MODIFIER'] = mdata.modifier.upper()
+    # CELLULAR
+    if mdata.pct_serum:
+        payload['PCT_SERUM'] = mdata.pct_serum
+    if mdata.cell_line:
+        payload['CELL_LINE'] = mdata.cell_line.upper()
+    if mdata.washout:
+        payload['WASHOUT'] = mdata.washout.upper()
+    if mdata.passage_nbr:
+        payload['PASSAGE_NUMBER'] = mdata.passage_nbr.upper()
+    if mdata.cell_incu_hr:
+        payload['CELL_INCUBATION_HR'] = mdata.cell_incu_hr
     sql_stmt, return_payload = generate_sql_stmt(payload)
     results = get_table_data(sql_stmt, return_payload)
     return results
