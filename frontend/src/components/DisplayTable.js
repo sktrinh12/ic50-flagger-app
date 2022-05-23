@@ -61,17 +61,17 @@ export default function DisplayTable() {
       newURL += `&cro=${mRows.CRO}`;
       newURL += `&assay=${mRows.ASSAY_TYPE}`;
       if (dtype === "biochem") {
-      newURL += `&target=${mRows.TARGET}`;
-      newURL += `&cofactors=${mRows.COFACTORS}`;
-      newURL += `&atp_conc=${mRows.ATP_CONC_UM}`;
-      newURL += `&modifier=${mRows.MODIFIER}`;
-      } 
+        newURL += `&target=${mRows.TARGET}`;
+        newURL += `&cofactors=${mRows.COFACTORS}`;
+        newURL += `&atp_conc=${mRows.ATP_CONC_UM}`;
+        newURL += `&modifier=${mRows.MODIFIER}`;
+      }
       if (dtype === "cellular") {
-      newURL += `&cell_line=${mRows.CELL_LINE}`;
-      newURL += `&pct_serum=${mRows.PCT_SERUM}`;
-      newURL += `&washout=${mRows.WASHOUT}`;
-      newURL += `&cell_incu_hr=${mRows.CELL_INCUBATION_HR}`;
-      newURL += `&passage_nbr=${mRows.PASSAGE_NUMBER}`;
+        newURL += `&cell_line=${mRows.CELL_LINE}`;
+        newURL += `&pct_serum=${mRows.PCT_SERUM}`;
+        newURL += `&washout=${mRows.WASHOUT}`;
+        newURL += `&cell_incu_hr=${mRows.CELL_INCUBATION_HR}`;
+        newURL += `&passage_nbr=${mRows.PASSAGE_NUMBER}`;
       }
     }
     console.log(`url: ${newURL}`);
@@ -107,11 +107,18 @@ export default function DisplayTable() {
           ? 0
           : 1 &&
             e.IC50_NM === tableData[idx].IC50_NM &&
-            ('CELL_LINE' in e ? e.CELL_LINE : e.TARGET) === ('CELL_LINE' in e ? tableData[idx].CELL_LINE : tableData[idx].TARGET) &&
-            ('PCT_SERUM' in e ?  e.PCT_SERUM === tableData[idx].PCT_SERUM : null ) && 
+            ("CELL_LINE" in e ? e.CELL_LINE : e.TARGET) ===
+              ("CELL_LINE" in e
+                ? tableData[idx].CELL_LINE
+                : tableData[idx].TARGET) &&
+            ("PCT_SERUM" in e
+              ? e.PCT_SERUM === tableData[idx].PCT_SERUM
+              : null) &&
             e.VARIANT === tableData[idx].VARIANT &&
-            ('WASHOUT' in e ?  e.WASHOUT === tableData[idx].WASHOUT : null ) &&
-            ('CELL_INCUBATION_HR' in e ? e.CELL_INCUBATION_HR === tableData[idx].CELL_INCUBATION_HR : null) &&
+            ("WASHOUT" in e ? e.WASHOUT === tableData[idx].WASHOUT : null) &&
+            ("CELL_INCUBATION_HR" in e
+              ? e.CELL_INCUBATION_HR === tableData[idx].CELL_INCUBATION_HR
+              : null) &&
             e.BATCH_ID === tableData[idx].BATCH_ID &&
             e.EXPERIMENT_ID === tableData[idx].EXPERIMENT_ID
       )[0].GEOMEAN;
@@ -155,15 +162,14 @@ export default function DisplayTable() {
         td.CRO === postData.CRO &&
         td.ASSAY_TYPE === postData.ASSAY_TYPE &&
         td.VARIANT === postData.VARIANT &&
-        ('CELL_LINE' in td ? td.CELL_LINE === postData.CELL_LINE &&
-        td.PCT_SERUM === postData.PCT_SERUM  &&
-        td.WASHOUT === postData.WASHOUT &&
-        td.CELL_INCUBATION_HR === postData.CELL_INCUBATION_HR 
-        :
-        td.TARGET === postData.TARGET && 
-        td.MODIFIER === postData.MODIFIER &&
-        td.COFACTORS === postData.COFACTORS
-        )
+        ("CELL_LINE" in td
+          ? td.CELL_LINE === postData.CELL_LINE &&
+            td.PCT_SERUM === postData.PCT_SERUM &&
+            td.WASHOUT === postData.WASHOUT &&
+            td.CELL_INCUBATION_HR === postData.CELL_INCUBATION_HR
+          : td.TARGET === postData.TARGET &&
+            td.MODIFIER === postData.MODIFIER &&
+            td.COFACTORS === postData.COFACTORS)
           ? i
           : null
       )
@@ -269,7 +275,9 @@ export default function DisplayTable() {
                             <ReadRow
                               keyValue={`${tdata.BATCH_ID}-READ-${i}`}
                               data={tdata}
-                              columnLoading={columnLoading.includes(i) ? true : false}
+                              columnLoading={
+                                columnLoading.includes(i) ? true : false
+                              }
                               handleEditClick={handleEditClick}
                             />
                           )}
