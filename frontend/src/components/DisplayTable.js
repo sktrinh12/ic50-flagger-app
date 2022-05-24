@@ -74,7 +74,7 @@ export default function DisplayTable() {
         newURL += `&passage_nbr=${mRows.PASSAGE_NUMBER}`;
       }
     }
-    console.log(`url: ${newURL}`);
+    // console.log(`url: ${newURL}`);
 
     await axios
       .get(newURL, axiosConfig)
@@ -107,18 +107,19 @@ export default function DisplayTable() {
           ? 0
           : 1 &&
             e.IC50_NM === tableData[idx].IC50_NM &&
-            ("CELL_LINE" in e ? e.CELL_LINE : e.TARGET) ===
-              ("CELL_LINE" in e
-                ? tableData[idx].CELL_LINE
-                : tableData[idx].TARGET) &&
+            ("CELL_LINE" in e
+              ? e.CELL_LINE === tableData[idx].CELL_LINE
+              : e.TARGET === tableData[idx].TARGET) &&
             ("PCT_SERUM" in e
               ? e.PCT_SERUM === tableData[idx].PCT_SERUM
-              : null) &&
+              : e.ATP_CONC_UM === tableData[idx].ATP_CONC_UM) &&
             e.VARIANT === tableData[idx].VARIANT &&
-            ("WASHOUT" in e ? e.WASHOUT === tableData[idx].WASHOUT : null) &&
+            ("WASHOUT" in e
+              ? e.WASHOUT === tableData[idx].WASHOUT
+              : e.COFACTORS === tableData[idx].COFACTORS) &&
             ("CELL_INCUBATION_HR" in e
               ? e.CELL_INCUBATION_HR === tableData[idx].CELL_INCUBATION_HR
-              : null) &&
+              : e.MODIFIER === tableData[idx].MODIFIER) &&
             e.BATCH_ID === tableData[idx].BATCH_ID &&
             e.EXPERIMENT_ID === tableData[idx].EXPERIMENT_ID
       )[0].GEOMEAN;
@@ -169,7 +170,8 @@ export default function DisplayTable() {
             td.CELL_INCUBATION_HR === postData.CELL_INCUBATION_HR
           : td.TARGET === postData.TARGET &&
             td.MODIFIER === postData.MODIFIER &&
-            td.COFACTORS === postData.COFACTORS)
+            td.COFACTORS === postData.COFACTORS &&
+            td.ATP_CONC_UM === postData.ATP_CONC_UM)
           ? i
           : null
       )
