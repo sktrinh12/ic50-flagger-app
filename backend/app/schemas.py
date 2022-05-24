@@ -11,7 +11,7 @@ class BasicSchema(BaseModel):
     assay: Optional[str] = None
     variant: Optional[str] = None
     # BIOCHEM
-    atp_conc: Optional[float] = None
+    atp_conc: Union[float, str] = "NULL"
     target: Optional[str] = None
     cofactors: Optional[str] = None
     modifier: Optional[str] = None
@@ -20,4 +20,4 @@ class BasicSchema(BaseModel):
     pct_serum: Optional[int] = None
     washout: Optional[str] = None
     passage_nbr: Optional[str] = None
-    cell_incu_hr: Optional[int] = None
+    cell_incu_hr: Union[int, str] = "NULL"
