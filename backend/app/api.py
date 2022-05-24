@@ -46,7 +46,7 @@ async def get_data(mdata: BasicSchema = Depends()): #-> Response:
     if mdata.assay:
         payload['ASSAY_TYPE'] = mdata.assay
     if mdata.atp_conc:
-        payload['ATP_CONC_UM'] = mdata.atp_conc
+        payload['ATP_CONC_UM'] = str(mdata.atp_conc)
     if mdata.modifier:
         payload['MODIFIER'] = mdata.modifier.upper()
     # CELLULAR
