@@ -1,6 +1,7 @@
 from .oracle_class import OracleConnection
 from .credentials import cred_dct
 from os import getenv
+import re
 
 cellular_fields = [
     'CRO',
@@ -95,16 +96,14 @@ def generate_sql_stmt(payload):
                 AND t1.batch_id = t2.batch_id
                 AND nvl(t1.target,'-') = nvl(t2.target, '-')
                 AND nvl(t1.variant, '-') = nvl(t2.variant, '-')
-              WHERE
-                    t1.ASSAY_INTENT = 'Screening'
-                AND t1.VALIDATED = 'VALIDATED'
+                AND nvl(t1.cofactors, '-') = nvl(t2.cofactors, '-')
               ) t3
               WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'
               """
             if payload['GET_M_NUM_ROWS']:
                 sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
                   AND t3.MODIFIER {'IS NULL' if payload["MODIFIER"] == 'NULL' or payload["MODIFIER"] is None else f"= '{payload['MODIFIER']}'"}
-                  AND t3.ATP_CONC_UM = {payload["ATP_CONC_UM"]}
+                  AND t3.ATP_CONC_UM {'IS NULL' if bool(re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE)) else f"= {payload['ATP_CONC_UM']}"}
                   AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                   AND t3.TARGET = '{payload["TARGET"]}'
                   AND t3.VARIANT {'IS NULL' if payload["VARIANT"] == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
@@ -163,9 +162,6 @@ def generate_sql_stmt(payload):
                 AND t1.batch_id = t2.batch_id
                 AND nvl(t1.cell_line,'-') = nvl(t2.cell_line, '-')
                 AND nvl(t1.variant, '-') = nvl(t2.variant, '-')
-              WHERE
-                    t1.ASSAY_INTENT = 'Screening'
-                AND t1.VALIDATED = 'VALIDATED'
               ) t3
               WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'
               """
@@ -207,7 +203,7 @@ def get_table_data(sql_stmt, payload):
     output = None
     with OracleConnection(cred_dct['USERNAME'],
                           cred_dct['PASSWORD'],
-                          cred_dct['HOST-PROD' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
+                          cred_dct['HOST-DEV'],
                           cred_dct['PORT'],
                           cred_dct['SID']) as con:
 
@@ -240,7 +236,7 @@ def generic_oracle_query(sql_stmt, payload):
 
     with OracleConnection(cred_dct['USERNAME'],
                           cred_dct['PASSWORD'],
-                          cred_dct['HOST-PROD' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
+                          cred_dct['HOST-DEV'],
                           cred_dct['PORT'],
                           cred_dct['SID']) as con:
 
