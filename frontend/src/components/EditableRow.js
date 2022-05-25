@@ -1,5 +1,4 @@
 import RadioButtonsGroup from "./RadioButton";
-// import { columns } from "./TableColumns";
 import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
@@ -10,10 +9,10 @@ const EditableRow = ({
   handleEditFormChange,
   handleCancelClick,
 }) => {
-  const renderContent = (param) => {
+  const renderContent = (param, column) => {
     return (
       <>
-        {[0, 1, "include", "exclude"].includes(param) ? (
+        {[0, 1, "include", "exclude"].includes(param) && column === 'FLAG' ? (
           <RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
         ) : param ? (
           param.length > 60 ? (
@@ -41,7 +40,7 @@ const EditableRow = ({
         const value = data[column.id];
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
-            {renderContent(value)}
+            {renderContent(value, column.id)}
           </TableCell>
         );
       })}
