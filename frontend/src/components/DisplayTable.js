@@ -97,8 +97,11 @@ export default function DisplayTable() {
   }, []);
 
   const setMrowsData = (rows, indices) => {
+    console.log('ROWS');
     console.log(rows);
     console.log("------------");
+    console.log('TABLEDATA');
+    console.log(tableData);
     for (let i = 0; i < indices.length; i++) {
       let idx = indices[i];
       tableData[idx].GEOMEAN = rows.filter((e) =>
@@ -120,6 +123,8 @@ export default function DisplayTable() {
             ("CELL_INCUBATION_HR" in e
               ? e.CELL_INCUBATION_HR === tableData[idx].CELL_INCUBATION_HR
               : e.MODIFIER === tableData[idx].MODIFIER) &&
+            ("PASSAGE_NUMBER" in e
+               && e.PASSAGE_NUMBER === tableData[idx].PASSAGE_NUMBER ) &&
             e.BATCH_ID === tableData[idx].BATCH_ID &&
             e.EXPERIMENT_ID === tableData[idx].EXPERIMENT_ID
       )[0].GEOMEAN;
