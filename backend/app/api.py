@@ -2,6 +2,9 @@ from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
 from .db import *
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas import BasicSchema
+from fastapi import Query
+from typing import List
+
 
 app = FastAPI()
 
@@ -27,14 +30,17 @@ def read_root():
 
 
 @app.get("/v1/fetch-data", tags=["get-data"])
-async def get_data(mdata: BasicSchema = Depends()): #-> Response:
+async def get_data(mdata: BasicSchema = Depends(), pids: List[str] = Query(default=[])) -> Response:
     if not mdata.compound_id.startswith('FT') and len(mdata.compound_id) != 8:
         raise HTTPException(status_code=404, detail=f"{mdata.compound_id} is invalid")
     payload = {}
     payload['COMPOUND_ID'] = mdata.compound_id
-    payload['GET_M_NUM_ROWS'] = eval(mdata.get_mnum_rows.title())
     payload['TYPE'] = mdata.type.upper()
     payload['SQL_TYPE'] = mdata.sql_type.upper()
+    payload['PIDS'] = pids
+    payload['GET_M_NUM_ROWS'] = eval(mdata.get_mnum_rows.title())
+    if pids:
+        print(f"PIDS: {pids}")
     if mdata.cro:
         payload['CRO'] = mdata.cro
     if mdata.target:
@@ -60,6 +66,8 @@ async def get_data(mdata: BasicSchema = Depends()): #-> Response:
         payload['PASSAGE_NUMBER'] = mdata.passage_nbr.upper()
     if mdata.cell_incu_hr:
         payload['CELL_INCUBATION_HR'] = mdata.cell_incu_hr
+    print(mdata)
+    print(payload)
     sql_stmt, return_payload = generate_sql_stmt(payload)
     results = get_table_data(sql_stmt, return_payload)
     return results
@@ -68,8 +76,7 @@ async def get_data(mdata: BasicSchema = Depends()): #-> Response:
 @app.post("/v1/change-data", tags=["post-data"])
 async def update_data(sql_type: str, type: str, request: Request):
     payload = await request.json()
-    if not payload["BATCH_ID"].startswith('FT') and \
-        len(payload["BATCH_ID"]) != 8:
+    if not payload["BATCH_ID"].startswith('FT'):
         raise HTTPException(status_code=404,
                             detail=f"{payload['BATCH_ID']} is invalid")
     if payload["FLAG"] not in [0, 1]:
@@ -78,7 +85,7 @@ async def update_data(sql_type: str, type: str, request: Request):
     payload['SQL_TYPE'] = sql_type.upper()
     payload['TYPE'] = type.upper()
     sql_stmt, rtn_payload = generate_sql_stmt(payload)
-    print(payload)
+    print(f'PAYLOAD: {payload}')
     post_result = generic_oracle_query(sql_stmt, payload)
     post_result = post_result | dict(STATUS_CODE=status.HTTP_200_OK)
     return post_result
