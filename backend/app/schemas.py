@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Union, Optional
 
 
 class BasicSchema(BaseModel):
