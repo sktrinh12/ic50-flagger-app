@@ -12,7 +12,7 @@ const EditableRow = ({
   const renderContent = (param, column) => {
     return (
       <>
-        {[0, 1, "include", "exclude"].includes(param) && column === 'FLAG' ? (
+        {[0, 1, "include", "exclude"].includes(param) && column === "FLAG" ? (
           <RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
         ) : param ? (
           param.length > 60 ? (

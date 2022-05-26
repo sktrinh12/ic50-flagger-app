@@ -5,7 +5,6 @@ import TableRow from "@mui/material/TableRow";
 import ReactLoading from "react-loading";
 
 const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
-  // console.log(`readrow colm load: ${columnLoading}`);
   const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
