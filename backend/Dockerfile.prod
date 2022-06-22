@@ -23,7 +23,7 @@ USER jenkins
 RUN apt-get update \
     && apt-get -yq install unzip curl
 
-ADD insta* /tmp/
+ADD insta* ./
 RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
 RUN mv ${ORACLE_ZIP_INTERNAL_FOLDER} oracle
 
