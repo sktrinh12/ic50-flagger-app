@@ -15,9 +15,9 @@ ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN adduser --disabled-password --gecos "" --uid ${UID} ${USER}
+# RUN adduser --disabled-password --gecos "" --uid ${UID} ${USER}
 
-USER jenkins
+# USER jenkins
 
 RUN apt-get update \
     && apt-get -yq install unzip curl
