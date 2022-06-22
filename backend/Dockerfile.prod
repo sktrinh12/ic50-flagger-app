@@ -7,10 +7,10 @@ ARG OR_SHORT_VER=12201
 
 WORKDIR /tmp
 ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_12_2
-ARG UID=1001
-ARG GID=1950
-ARG USER=jenkins
-ARG GROUP=jenkins
+# ARG UID=1001
+# ARG GID=1950
+# ARG USER=jenkins
+# ARG GROUP=jenkins
 ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
 ENV DEBIAN_FRONTEND=noninteractive
