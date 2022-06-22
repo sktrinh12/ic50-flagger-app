@@ -7,11 +7,16 @@ ARG OR_SHORT_VER=12201
 
 WORKDIR /tmp
 ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_12_2
+ARG UID=1001
+ARG GID=1950
+ARG USER=jenkins
+ARG GROUP=jenkins
 ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN adduser --disabled-password --gecos "" --uid 1001 jenkins
+RUN groupadd -g ${GID} ${GROUP}
+RUN adduser --disabled-password --gecos "" --uid ${UID} ${USER}
 
 USER jenkins
 
@@ -22,9 +27,19 @@ ADD insta* .
 RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
 RUN mv ${ORACLE_ZIP_INTERNAL_FOLDER} oracle
 
+ARG USERNAME=backend
+ARG INSTANCE_TYPE=production
+ARG ORACLE_HOST
+ARG ORACLE_USER
+ARG ORACLE_PASS
+ARG ORACLE_PORT
+ARG ORACLE_SID
+ARG ORACLE_CREDS_ARG
+
 FROM python:${PYTHON_VERSION}
-ENV USERNAME=backend
-ENV INSTANCE_TYPE=production
+
+ENV INSTANCE_TYPE=${INSTANCE_TYPE}
+ENV ORACLE_HOST=${ORACLE_HOST}
 ENV ORACLE_HOST=${ORACLE_HOST}
 ENV ORACLE_PORT=${ORACLE_PORT}
 ENV ORACLE_SID=${ORACLE_SID}
