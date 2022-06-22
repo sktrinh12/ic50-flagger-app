@@ -169,7 +169,7 @@ export default function DisplayTable() {
       .post(url, postData, axiosConfig)
       .then((res) => {
         if (res.status === 200) {
-          fetchData(true, postData, pids);
+          fetchData(true, postData);
         }
         console.log("RESPONSE RECEIVED: ", res);
       })
