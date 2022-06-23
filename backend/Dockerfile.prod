@@ -17,7 +17,7 @@ ADD insta* ./
 RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
 RUN mv ${ORACLE_ZIP_INTERNAL_FOLDER} oracle
 
-ARG USERNAME=backend
+ARG USERNAME=jenkins
 ARG INSTANCE_TYPE=production
 ARG ORACLE_HOST
 ARG ORACLE_USER
