@@ -12,7 +12,7 @@ COPY package*.json ./
 RUN npm install 
 
 # add app & build
-COPY . ./
+COPY /geomean-ic50-flagger/frontend ./
 RUN npm run build
 
 FROM nginx:alpine
