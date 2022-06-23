@@ -52,13 +52,13 @@ RUN apt-get update \
 	&& apt-get -yq install libaio1 sudo \
 	&& apt-get -yq autoremove \
 	&& apt-get clean \
-	&& adduser --shell /bin/bash ${USERNAME} \
+	# && adduser --shell /bin/bash ${USERNAME} \
 	# Install Oracle Instant Client
 	&& echo ${ORACLE_HOME} > /etc/ld.so.conf.d/oracle.conf \
 	&& mkdir -p ${TNS_ADMIN} \
 	&& ldconfig \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-	# && echo "${USERNAME}  ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/${USERNAME}"
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+	&& echo "${USERNAME}  ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/${USERNAME}"
 
 WORKDIR ${HOME}
 USER ${USERNAME}
