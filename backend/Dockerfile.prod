@@ -57,8 +57,8 @@ RUN apt-get update \
 	&& echo ${ORACLE_HOME} > /etc/ld.so.conf.d/oracle.conf \
 	&& mkdir -p ${TNS_ADMIN} \
 	&& ldconfig \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-	&& echo "${USERNAME}  ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/${USERNAME}"
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+	# && echo "${USERNAME}  ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/${USERNAME}"
 
 WORKDIR ${HOME}
 USER ${USERNAME}
