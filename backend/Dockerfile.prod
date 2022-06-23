@@ -7,20 +7,11 @@ ARG OR_SHORT_VER=12201
 
 WORKDIR /tmp
 ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_12_2
-# ARG UID=1001
-# ARG GID=1950
-# ARG USER=jenkins
-# ARG GROUP=jenkins
 ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
 ENV DEBIAN_FRONTEND=noninteractive
 
-# RUN adduser --disabled-password --gecos "" --uid ${UID} ${USER}
-
-# USER jenkins
-
-RUN apt-get update \
-    && apt-get -yq install unzip curl
+RUN apt-get update && apt-get -yq install unzip curl
 
 ADD insta* ./
 RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
@@ -52,8 +43,9 @@ ENV TNS_ADMIN ${ORACLE_HOME}/network/admin
 VOLUME ["${TNS_ADMIN}"]
 
 RUN mkdir -p ${HOME}/app
-ADD main.py requirements.txt ${HOME} 
-ADD app ${HOME}/app
+ADD /geomean-ic50-flagger/backend/main.py ${HOME} 
+ADD /geomean-ic50-flagger/backend/requirements.txt ${HOME} 
+ADD /geomean-ic50-flagger/backend/app ${HOME}/app
 RUN pip install -r ${HOME}/requirements.txt
 COPY --from=client /tmp/oracle ${ORACLE_HOME}
 RUN apt-get update \
