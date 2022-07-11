@@ -100,11 +100,11 @@ def generate_sql_stmt(payload):
                 sql_stmt += f"WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
                 if payload['GET_M_NUM_ROWS']:
                     sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
-                      AND t3.MODIFIER {'IS NULL' if payload["MODIFIER"] == 'NULL' or payload["MODIFIER"] is None else f"= '{payload['MODIFIER']}'"}
+                      AND t3.MODIFIER {'IS NULL' if payload["MODIFIER"].upper() == 'NULL' or payload["MODIFIER"] is None else f"= '{payload['MODIFIER']}'"}
                       AND t3.ATP_CONC_UM {'IS NULL' if bool(re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE)) else f"= {payload['ATP_CONC_UM']}"}
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                       AND t3.TARGET = '{payload["TARGET"]}'
-                      AND t3.VARIANT {'IS NULL' if payload["VARIANT"] == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
+                      AND t3.VARIANT {'IS NULL' if payload["VARIANT"].upper() == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
                       AND t3.COFACTORS {'IS NULL' if payload["COFACTORS"] == 'NULL' or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
                    """
 
