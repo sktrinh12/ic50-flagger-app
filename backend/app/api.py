@@ -44,26 +44,26 @@ async def get_data(mdata: BasicSchema = Depends(), pids: List[str] = Query(defau
     if mdata.cro:
         payload['CRO'] = mdata.cro
     if mdata.target:
-        payload['TARGET'] = mdata.target.upper()
+        payload['TARGET'] = mdata.target
     if mdata.variant:
-        payload['VARIANT'] = mdata.variant.upper()
+        payload['VARIANT'] = mdata.variant
     if mdata.cofactors:
-        payload['COFACTORS'] = mdata.cofactors.upper()
+        payload['COFACTORS'] = mdata.cofactors
     if mdata.assay:
         payload['ASSAY_TYPE'] = mdata.assay
     if mdata.atp_conc:
         payload['ATP_CONC_UM'] = str(mdata.atp_conc)
     if mdata.modifier:
-        payload['MODIFIER'] = mdata.modifier.upper()
+        payload['MODIFIER'] = mdata.modifier
     # CELLULAR
     if mdata.pct_serum:
         payload['PCT_SERUM'] = mdata.pct_serum
     if mdata.cell_line:
-        payload['CELL_LINE'] = mdata.cell_line.upper()
+        payload['CELL_LINE'] = mdata.cell_line
     if mdata.washout:
         payload['WASHOUT'] = mdata.washout.upper()
     if mdata.passage_nbr:
-        payload['PASSAGE_NUMBER'] = mdata.passage_nbr.upper()
+        payload['PASSAGE_NUMBER'] = mdata.passage_nbr
     if mdata.cell_incu_hr:
         payload['CELL_INCUBATION_HR'] = mdata.cell_incu_hr
     print(mdata)
