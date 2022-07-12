@@ -105,7 +105,7 @@ def generate_sql_stmt(payload):
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                       AND t3.TARGET = '{payload["TARGET"]}'
                       AND t3.VARIANT {'IS NULL' if payload["VARIANT"].upper() == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
-                      AND t3.COFACTORS {'IS NULL' if payload["COFACTORS"] == 'NULL' or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
+                      AND t3.COFACTORS {'IS NULL' if payload["COFACTORS"].upper() == 'NULL' or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
                    """
 
         elif payload["TYPE"] == "CELLULAR":
