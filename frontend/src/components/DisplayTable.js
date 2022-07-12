@@ -74,7 +74,9 @@ export default function DisplayTable() {
         newURL += `&passage_nbr=${postData.PASSAGE_NUMBER}`;
       }
     }
-    // console.log(`url: ${newURL}`);
+    if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
+      console.log(`url: ${newURL}`);
+    };
 
     await axios
       .get(newURL, axiosConfig)
