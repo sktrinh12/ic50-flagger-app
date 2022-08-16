@@ -170,7 +170,7 @@ def generate_sql_stmt(payload):
                   AND t3.PCT_SERUM = {payload["PCT_SERUM"]}
                   AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                   AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= '{payload['CELL_INCUBATION_HR']}'"}
-                  AND t3.VARIANT {'IS NULL' if payload["VARIANT"] == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
+                  AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
                   AND t3.WASHOUT {'IS NULL' if payload["WASHOUT"] == 'NULL' or payload["WASHOUT"] is None else f"= '{payload['WASHOUT']}'"}
                   AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
                """
