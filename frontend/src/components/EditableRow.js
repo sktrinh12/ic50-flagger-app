@@ -29,9 +29,9 @@ const EditableRow = ({
 
   var DataFields = null;
   if ("WASHOUT" in data) {
-    DataFields = require("./TableColumnsCellular");
+    DataFields = require("./TableColumnsCellularAll");
   } else {
-    DataFields = require("./TableColumnsBiochem");
+    DataFields = require("./TableColumnsBiochemAll");
   }
 
   return (
