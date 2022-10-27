@@ -179,10 +179,10 @@ export default function DisplayTable() {
 
   const handleEditFormSubmit = (event) => {
     event.preventDefault();
-    const type = searchParams.get("type");
+    // const type = searchParams.get("type");
     // console.log(`type: ${type}`);
 
-    const url = `${REACT_APP_BACKEND_URL}/v1/change-data?sql_type=update&type=${type}`;
+    const url = `${REACT_APP_BACKEND_URL}/v1/change-data?sql_type=update&type=${dtype}`;
     const newTableData = [...tableData];
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
 
@@ -190,7 +190,7 @@ export default function DisplayTable() {
     newTableData[index]["FLAG"] = flag;
     setEditFlag(null);
     let postData = Object.assign({}, newTableData[index]);
-    postData["TYPE"] = type;
+    postData["TYPE"] = dtype;
     postData["FLAG"] = postData["FLAG"] === "include" ? 0 : 1;
     console.log(postData);
 
