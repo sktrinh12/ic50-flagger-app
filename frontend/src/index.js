@@ -3,7 +3,7 @@ import Home from './components/Home';
 import NotFound from './components/NotFound';
 import ReactDOM from 'react-dom/client';
 import { StyledEngineProvider } from '@mui/material/styles';
-import DisplayTable from "./components/DisplayTable";
+import DisplayTable from "./components/DisplayTable.tsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 ReactDOM.createRoot(document.querySelector("#root")).render(
