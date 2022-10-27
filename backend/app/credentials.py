@@ -3,7 +3,6 @@ cred_file = getenv('ORACLE_CREDS_ARG', '')
 
 
 cred_dct = {}
-
 if cred_file == '':
     cred_file = '/Users/spencer.trinhkinnate.com/Documents/security_files/oracle2'
     with open(cred_file, 'r') as f:
