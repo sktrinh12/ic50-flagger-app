@@ -1,99 +1,16 @@
 from .oracle_class import OracleConnection
 from .credentials import cred_dct
+from .sql import sql_cmds, field_names_dct
 from os import getenv
 import re
-
-cellular_fields = [
-    'PID',
-    'CRO',
-    'ASSAY_TYPE',
-    'COMPOUND_ID',
-    'EXPERIMENT_ID',
-    'BATCH_ID',
-    'CELL_LINE',
-    'VARIANT',
-    'PCT_SERUM',
-    'PASSAGE_NUMBER',
-    'WASHOUT',
-    'CELL_INCUBATION_HR',
-    'PLOT',
-    'IC50_NM',
-    'FLAG',
-    'GEOMEAN',
-]
-
-
-biochem_fields = [
-    'PID',
-    'CRO',
-    'ASSAY_TYPE',
-    'COMPOUND_ID',
-    'EXPERIMENT_ID',
-    'BATCH_ID',
-    'TARGET',
-    'VARIANT',
-    'COFACTORS',
-    'ATP_CONC_UM',
-    'MODIFIER',
-    'PLOT',
-    'IC50_NM',
-    'FLAG',
-    'GEOMEAN'
-]
 
 
 def generate_sql_stmt(payload):
     sql_stmt = None
     if payload["SQL_TYPE"] == "GET":
-        if payload["TYPE"] == "BIOCHEM":
-            sql_stmt = """SELECT
-                t3.PID,
-                t3.CRO,
-                t3.ASSAY_TYPE,
-                t3.COMPOUND_ID,
-                t3.EXPERIMENT_ID,
-                t3.BATCH_ID,
-                t3.TARGET,
-                t3.VARIANT,
-                t3.COFACTORS,
-                t3.ATP_CONC_UM,
-                t3.MODIFIER,
-                BASE64ENCODE(t3.GRAPH) as GRAPH,
-                ROUND(t3.ic50_nm,2) as IC50_NM,
-                t3.flag,
-             ROUND( POWER(10,
-               AVG( LOG(10, t3.ic50) ) OVER(PARTITION BY
-                    t3.CRO,
-                    t3.ASSAY_TYPE,
-                    t3.COMPOUND_ID,
-                    t3.TARGET,
-                    t3.VARIANT,
-                    t3.COFACTORS,
-                    t3.ATP_CONC_UM,
-                    t3.MODIFIER,
-                    t3.flag
-                )) * TO_NUMBER('1.0e+09'), 1) AS GEOMEAN
-                FROM (
-              SELECT t1.CRO,
-                     t1.ASSAY_TYPE,
-                     t1.experiment_id,
-                     t1.COMPOUND_ID,
-                     t1.BATCH_ID,
-                     t1.TARGET,
-                     t1.VARIANT,
-                     t1.COFACTORS,
-                     t1.ATP_CONC_UM,
-                     t1.MODIFIER,
-                     t1.GRAPH,
-                     t2.flag,
-                     t1.ic50,
-                     t1.ic50_nm,
-                     t1.PID
-               FROM DS3_USERDATA.ENZYME_INHIBITION_VW t1
-              INNER JOIN DS3_USERDATA.TEST2_BIOCHEM_IC50_FLAGS t2
-                 ON t1.pid = t2.pid
-              ) t3
-              """
+        if payload["TYPE"] == "BIOCHEM_ALL":
+            sql_stmt = sql_cmds['GEOMEAN_BIO_ALL']
+
             if payload['PIDS']:
                 sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
             else:
@@ -108,79 +25,50 @@ def generate_sql_stmt(payload):
                       AND t3.COFACTORS {'IS NULL' if payload["COFACTORS"].upper() == 'NULL' or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
                    """
 
-        elif payload["TYPE"] == "CELLULAR":
-            sql_stmt = """SELECT
-                t3.PID,
-                t3.CRO,
-                t3.ASSAY_TYPE,
-                t3.COMPOUND_ID,
-                t3.EXPERIMENT_ID,
-                t3.BATCH_ID,
-                t3.CELL_LINE,
-                t3.VARIANT,
-                t3.PCT_SERUM,
-                t3.PASSAGE_NUMBER,
-                t3.WASHOUT,
-                t3.CELL_INCUBATION_HR,
-                BASE64ENCODE(t3.GRAPH) as GRAPH,
-                ROUND(t3.ic50_nm,2) as IC50_NM,
-                t3.flag,
-                ROUND( POWER(10,
-                   AVG( LOG(10, t3.ic50) ) OVER(PARTITION BY
-                    t3.CRO,
-                    t3.ASSAY_TYPE,
-                    t3.COMPOUND_ID,
-                    t3.CELL_LINE,
-                    t3.VARIANT,
-                    t3.PCT_SERUM,
-                    t3.WASHOUT,
-                    t3.PASSAGE_NUMBER,
-                    t3.CELL_INCUBATION_HR,
-                    t3.flag
-                )) * TO_NUMBER('1.0e+09'), 2) AS GEOMEAN
-                FROM (
-              SELECT t1.CRO,
-                     t1.ASSAY_TYPE,
-                     t1.experiment_id,
-                     t1.COMPOUND_ID,
-                     t1.BATCH_ID,
-                     t1.CELL_LINE,
-                     t1.VARIANT,
-                     t1.PCT_SERUM,
-                     t1.WASHOUT,
-                     t1.PASSAGE_NUMBER,
-                     t1.CELL_INCUBATION_HR,
-                     t1.GRAPH,
-                     t2.flag,
-                     t1.ic50,
-                     t1.PID,
-                     t1.ic50_nm
-               FROM DS3_USERDATA.CELLULAR_GROWTH_DRC t1
-              INNER JOIN DS3_USERDATA.TEST2_CELLULAR_IC50_FLAGS t2
-                 ON t1.pid = t2.pid
-              ) t3
-              """
-            if payload['PIDS']:
-                sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
+        elif payload["TYPE"] == "BIOCHEM_AGG":
+            sql_stmt = sql_cmds['GEOMEAN_BIO_AGG'].format(payload['COMPOUND_ID'],
+                                                          payload['CRO'],
+                                                          payload['ASSAY_TYPE'],
+                                                          payload['COFACTORS'],
+                                                          payload['ATP_CONC_UM'],
+                                                          payload['VARIANT'],
+                                                          payload['MODIFIER']
+                                                          )
+
+        elif payload["TYPE"] == "BIOCHEM_STATS":
+            sql_stmt = sql_cmds['GEOMEAN_BIO_STATS'].format(payload['COMPOUND_ID'])
+
+        elif payload["TYPE"].startswith("CELLULAR"):
+            if payload["TYPE"].endswith("STATS"):
+                sql_stmt = sql_cmds['GEOMEAN_CELL_STATS'].format(payload['COMPOUND_ID'])
             else:
-                sql_stmt += f"WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
-                if payload['GET_M_NUM_ROWS']:
-                    sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
-                  AND t3.CELL_LINE {'IS NULL' if payload["CELL_LINE"] == 'NULL' or payload["CELL_LINE"] is None else f"= '{payload['CELL_LINE']}'"}
-                  AND t3.PCT_SERUM = {payload["PCT_SERUM"]}
-                  AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
-                  AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= '{payload['CELL_INCUBATION_HR']}'"}
-                  AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
-                  AND t3.WASHOUT {'IS NULL' if payload["WASHOUT"] == 'NULL' or payload["WASHOUT"] is None else f"= '{payload['WASHOUT']}'"}
-                  AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
-               """
+                sql_stmt = sql_cmds['GEOMEAN_CELL_ALL']
+
+                if payload['PIDS']:
+                    sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
+                else:
+                    sql_stmt += f" WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
+
+                    if payload['GET_M_NUM_ROWS'] or payload["TYPE"] == "CELLULAR_AGG":
+                        sql_stmt += f"""
+                      AND t3.CRO = '{payload["CRO"]}'
+                      AND t3.CELL_LINE {'IS NULL' if payload["CELL_LINE"] == 'NULL' or payload["CELL_LINE"] is None else f"= '{payload['CELL_LINE']}'"}
+                      AND t3.PCT_SERUM = {payload["PCT_SERUM"]}
+                      AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
+                      AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= '{payload['CELL_INCUBATION_HR']}'"}
+                      AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
+                      """
+                        # if payload["TYPE"].endswith("ALL"):
+                        #     sql_stmt += f"""AND t3.WASHOUT {'IS NULL' if payload["WASHOUT"] == 'NULL' or payload["WASHOUT"] is None else f"= '{payload['WASHOUT']}'"}
+                        #               AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
+                        #               """
 
     elif payload["SQL_TYPE"] == 'UPDATE':
         sql_stmt = "UPDATE DS3_USERDATA."
-        if payload['TYPE'] == 'CELLULAR':
-            sql_stmt += "TEST2_CELLULAR_IC50_FLAGS"
-        elif payload['TYPE'] == 'BIOCHEM':
-            sql_stmt += "TEST2_BIOCHEM_IC50_FLAGS"
+        if payload['TYPE'].startswith('CELLULAR'):
+            sql_stmt += "CELLULAR_IC50_FLAGS"
+        elif payload['TYPE'].startswith('BIOCHEM'):
+            sql_stmt += "BIOCHEM_IC50_FLAGS"
 
         sql_stmt += f""" SET FLAG = {payload["FLAG"]}
                          WHERE PID = '{payload["PID"]}'
@@ -198,7 +86,7 @@ def get_table_data(sql_stmt, payload):
                           cred_dct['PORT'],
                           cred_dct['SID']) as con:
 
-        if getenv("INSTANCE_TYPE", None) is None:
+        if not getenv("ORACLE_CREDS_ARG"):
             print(sql_stmt)
 
         with con.cursor() as cursor:
@@ -208,9 +96,11 @@ def get_table_data(sql_stmt, payload):
                 print(f"No data fetched for {payload['COMPOUND_ID']}")
                 return []
             output_lst = []
-            field_names = cellular_fields.copy()
-            if payload["TYPE"] == 'BIOCHEM':
-                field_names = biochem_fields.copy()
+            prefix_type = payload['TYPE'].lower()
+            if prefix_type.endswith('agg'):
+                prefix_type = prefix_type.split('_')[0] + '_all'
+            field_names = field_names_dct[f'{prefix_type}_fields'].copy()
+
             for i, r in enumerate(output):
                 output_dct = {}
                 output_dct['ID'] = i
