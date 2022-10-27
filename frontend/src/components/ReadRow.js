@@ -1,10 +1,10 @@
-// import { columns } from "./TableColumns";
 import * as React from "react";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import ReactLoading from "react-loading";
+import { PurpleColour } from "./Colour";
 
-const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
+const ReadRow = ({ keyValue, types, columnLoading, data, handleEditClick }) => {
   const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
@@ -32,10 +32,18 @@ const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
   };
 
   var DataFields = null;
-  if ("WASHOUT" in data) {
-    DataFields = require("./TableColumnsCellular");
+  if ("CELL_INCUBATION_HR" in data) {
+    if ("N_OF_M" in data) {
+      DataFields = require("./TableColumnsCellularStats");
+    } else {
+      DataFields = require("./TableColumnsCellularAll");
+    }
   } else {
-    DataFields = require("./TableColumnsBiochem");
+    if ("N_OF_M" in data) {
+      DataFields = require("./TableColumnsBiochemStats");
+    } else {
+      DataFields = require("./TableColumnsBiochemAll");
+    }
   }
 
   return (
@@ -48,24 +56,52 @@ const ReadRow = ({ keyValue, columnLoading, data, handleEditClick }) => {
     >
       {DataFields.columns.map((column, i) => {
         const value = data[column.id];
+        const getURL = [
+          "/get-data?compound_id=",
+          data.COMPOUND_ID,
+          "&type=",
+          types[0].split("_")[0] + "_agg",
+          "&sql_type=",
+          types[1],
+          "&cro=",
+          data.CRO,
+          "&assay=",
+          data.ASSAY_TYPE,
+          "&get_mnum_rows=false",
+          "&cell_line=",
+          data.CELL_LINE,
+          "&pct_serum=",
+          data.PCT_SERUM,
+          "&cell_incu_hr=",
+          data.CELL_INCUBATION_HR,
+          "&variant=",
+          data.VARIANT === "-" ? "null" : data.VARIANT,
+        ].join("");
+
+        // console.log(`the nested URL: ${getURL}`);
+       
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
             {columnLoading && column.id === "GEOMEAN" ? (
               <ReactLoading
                 type="spin"
-                color="#2E86C1"
+                color={PurpleColour}
                 height={30}
                 width={30}
                 margin="auto"
                 padding="0px"
               />
+            ) : column.id === "GEOMEAN" && data.N_OF_M ? (
+              <a href={getURL} target="_blank" rel="noopener noreferrer">
+                {value}
+              </a>
             ) : (
               handleDynamicValue(column.id, value)
             )}
           </TableCell>
         );
       })}
-      {data && (
+      {data && !data.N_OF_M && (
         <TableCell
           align={"center"}
           key={`ACTION-${keyValue}-${
