@@ -113,7 +113,7 @@ def get_table_data(sql_stmt, payload):
         return output_lst
 
 
-def generic_oracle_query(sql_stmt, payload):
+def generic_oracle_query(sql_stmt, commit=False):
 
     with OracleConnection(cred_dct['USERNAME'],
                           cred_dct['PASSWORD'],
@@ -121,10 +121,16 @@ def generic_oracle_query(sql_stmt, payload):
                           cred_dct['PORT'],
                           cred_dct['SID']) as con:
 
-        if getenv("INSTANCE_TYPE", None) is None:
-            print(sql_stmt)
 
         with con.cursor() as cursor:
             cursor.execute(sql_stmt)
-            con.commit()
-        return payload
+            if commit:
+                con.commit()
+            result = cursor.fetchone()
+
+        if getenv("INSTANCE_TYPE", None) is None:
+            print(sql_stmt)
+            print('-'*35)
+            print(result)
+
+        return result
