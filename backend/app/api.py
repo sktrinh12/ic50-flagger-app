@@ -26,7 +26,8 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    payload = generic_oracle_query('SELECT * FROM v$version')
+    return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
 
 
 @app.get("/v1/fetch-data", tags=["get-data"])
@@ -85,7 +86,11 @@ async def update_data(sql_type: str, type: str, request: Request):
     payload['SQL_TYPE'] = sql_type.upper()
     payload['TYPE'] = type.upper()
     sql_stmt, rtn_payload = generate_sql_stmt(payload)
-    print(f'PAYLOAD: {payload}')
-    post_result = generic_oracle_query(sql_stmt, payload)
-    post_result = post_result | dict(STATUS_CODE=status.HTTP_200_OK)
+    print(f'PAYLOAD: {rtn_payload}')
+    result = generic_oracle_query(sql_stmt, True)
+    if result:
+        STATUS_CODE = status.HTTP_200_OK
+    else:
+        STATUS_CODE = status.HTTP_400_BAD_REQUEST
+    post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE)
     return post_result
