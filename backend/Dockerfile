@@ -2,21 +2,24 @@ ARG PYTHON_VERSION=3.9
 
 FROM debian:buster AS client
 
-ARG ORACLE_VERSION=12.2.0.1.0
-ARG OR_SHORT_VER=12201
+ARG ORACLE_VERSION=19.17.0.0.0
+ARG OR_SHORT_VER=1917000
 
 WORKDIR /root
-ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_12_2
-ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
-ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
+ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_19_17
+ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}dbru.zip
+ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}dbru.zip
+
+# https://download.oracle.com/otn_software/linux/instantclient/1917000/instantclient-sdk-linux.x64-19.17.0.0.0dbru.zip
+# https://download.oracle.com/otn_software/linux/instantclient/1917000/instantclient-basiclite-linux.x64-19.17.0.0.0dbru.zip
 
 RUN apt-get update \
     && apt-get -yq install unzip curl
 
-# RUN curl -LJO "https://download.oracle.com/otn_software/linux/instantclient/${OR_SHORT_VER}/${CLIENT_ZIP}"\
-# 	&& curl -LJO "https://download.oracle.com/otn_software/linux/instantclient/${OR_SHORT_VER}/${SDK_ZIP}"
+RUN curl -LJO "https://download.oracle.com/otn_software/linux/instantclient/${OR_SHORT_VER}/${CLIENT_ZIP}"\
+	&& curl -LJO "https://download.oracle.com/otn_software/linux/instantclient/${OR_SHORT_VER}/${SDK_ZIP}"
 
-ADD insta* .
+# ADD insta* .
 RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
 RUN mv ${ORACLE_ZIP_INTERNAL_FOLDER} oracle
 
