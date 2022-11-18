@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
-from .db import *
+from .db import generic_oracle_query, generate_sql_stmt
 from fastapi.middleware.cors import CORSMiddleware
-from .schemas import BasicSchema
+from .schemas import GetDataSchema, PostDataResponseSchema
 from fastapi import Query
 from typing import List
 
@@ -26,12 +26,14 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    payload = generic_oracle_query('SELECT * FROM v$version')
+    payload = generic_oracle_query('SELECT * FROM v$version',
+                                   {'SQL_TYPE': 'blank'}
+                                   )
     return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
 
 
 @app.get("/v1/fetch-data", tags=["get-data"])
-async def get_data(mdata: BasicSchema = Depends(), pids: List[str] = Query(default=[])) -> Response:
+async def get_data(mdata: GetDataSchema = Depends(), pids: List[str] = Query(default=[])) -> Response:
     if not mdata.compound_id.startswith('FT') and len(mdata.compound_id) != 8:
         raise HTTPException(status_code=404, detail=f"{mdata.compound_id} is invalid")
     payload = {}
@@ -67,16 +69,21 @@ async def get_data(mdata: BasicSchema = Depends(), pids: List[str] = Query(defau
         payload['PASSAGE_NUMBER'] = mdata.passage_nbr
     if mdata.cell_incu_hr:
         payload['CELL_INCUBATION_HR'] = mdata.cell_incu_hr
-    print(mdata)
-    print(payload)
+    # print(mdata)
+    # print(payload)
     sql_stmt, return_payload = generate_sql_stmt(payload)
-    results = get_table_data(sql_stmt, return_payload)
+    print(return_payload)
+    print('-'*35)
+    results = generic_oracle_query(sql_stmt, return_payload)
     return results
 
 
 @app.post("/v1/change-data", tags=["post-data"])
-async def update_data(sql_type: str, type: str, request: Request):
-    payload = await request.json()
+async def update_data(payload: Request, sql_type: str, type: str,
+                      user_name: str):
+    payload = await payload.json()
+    # payload = payload.dict()
+    # print(payload)
     if not payload["BATCH_ID"].startswith('FT'):
         raise HTTPException(status_code=404,
                             detail=f"{payload['BATCH_ID']} is invalid")
@@ -85,12 +92,13 @@ async def update_data(sql_type: str, type: str, request: Request):
                             detail=f"{payload['FLAG']} is not acceptable")
     payload['SQL_TYPE'] = sql_type.upper()
     payload['TYPE'] = type.upper()
+    payload['USER_NAME'] = user_name
     sql_stmt, rtn_payload = generate_sql_stmt(payload)
     print(f'PAYLOAD: {rtn_payload}')
-    result = generic_oracle_query(sql_stmt, True)
+    result = generic_oracle_query(sql_stmt, rtn_payload)
     if result:
         STATUS_CODE = status.HTTP_200_OK
     else:
         STATUS_CODE = status.HTTP_400_BAD_REQUEST
-    post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE)
+    post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE) | result
     return post_result
