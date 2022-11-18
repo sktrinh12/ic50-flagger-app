@@ -12,9 +12,11 @@ if cred_file == '':
             key = str_split[0].strip()
             value = str_split[1].strip()
             cred_dct[key] = value
+    print(f'running in dev: {cred_dct["HOST-DEV"]}')
 else:
     cred_dct['HOST'] = getenv('ORACLE_HOST')
     cred_dct['USERNAME'] = getenv('ORACLE_USER')
     cred_dct['PASSWORD'] = getenv('ORACLE_PASS')
     cred_dct['SID'] = getenv('ORACLE_SID')
     cred_dct['PORT'] = getenv('ORACLE_PORT')
+    print(f'running in prod: {cred_dct["HOST"]}')
