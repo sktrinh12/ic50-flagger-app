@@ -44,39 +44,38 @@ export default function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
-        {DataFields.columns.map((column) => (
-				  column.label === 'GEOMEAN' && type.includes('stats') ? 
-																								null :
-          <TableCell
-            key={column.id}
-            align={column.align}
-            style={{
-              minWidth: column.minWidth,
-              fontWeight: column.fontWeight,
-              backgroundColor: column.backgroundColor,
-              color: column.color,
-            }}
-          >
-            {["PLOT", "FLAG"].includes(column.id) ? (
-              column.label
-            ) : (
-              <TableSortLabel
-                active={orderBy === column.id}
-                direction={orderBy === column.id ? order : "asc"}
-                onClick={createSortHandler(column.id)}
-              >
-                {column.label}
-              </TableSortLabel>
-            )}
-          </TableCell>
-				
-        ))}
+        {DataFields.columns.map((column) =>
+          column.label === "GEOMEAN" && type.includes("stats") ? null : (
+            <TableCell
+              key={column.id}
+              align={column.align}
+              style={{
+                minWidth: column.minWidth,
+                fontWeight: column.fontWeight,
+                backgroundColor: column.backgroundColor,
+                color: column.color,
+              }}
+            >
+              {["PLOT", "FLAG"].includes(column.id) ? (
+                column.label
+              ) : (
+                <TableSortLabel
+                  active={orderBy === column.id}
+                  direction={orderBy === column.id ? order : "asc"}
+                  onClick={createSortHandler(column.id)}
+                >
+                  {column.label}
+                </TableSortLabel>
+              )}
+            </TableCell>
+          )
+        )}
         {type.includes("all") && (
           <TableCell key={"ACTION"} align={"center"} style={styles}>
             Action
           </TableCell>
         )}
-        <TableCell key={"FILTER"} alight={"center"} style={styles}>
+        <TableCell key={"FILTER"} align={"center"} style={styles}>
           <IconButton
             color="inherit"
             aria-label="filterButton"
