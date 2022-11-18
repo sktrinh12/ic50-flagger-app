@@ -4,7 +4,7 @@ import TableRow from "@mui/material/TableRow";
 import ReactLoading from "react-loading";
 import { PurpleColour } from "./Colour";
 
-const ReadRow = ({ keyValue, types, columnLoading, data, handleEditClick }) => {
+const ReadRow = ({ keyValue, data, username, types, columnLoading, handleEditClick }) => {
   const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
@@ -76,10 +76,12 @@ const ReadRow = ({ keyValue, types, columnLoading, data, handleEditClick }) => {
           data.CELL_INCUBATION_HR,
           "&variant=",
           data.VARIANT === "-" ? "null" : data.VARIANT,
+          "&user_name=",
+          username,
         ].join("");
 
         // console.log(`the nested URL: ${getURL}`);
-       
+
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
             {columnLoading && column.id === "GEOMEAN" ? (
