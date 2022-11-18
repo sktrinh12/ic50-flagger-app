@@ -1,6 +1,7 @@
 from .oracle_class import OracleConnection
 from .credentials import cred_dct
 from .sql import sql_cmds, field_names_dct
+from datetime import datetime
 from os import getenv
 import re
 
@@ -63,74 +64,71 @@ def generate_sql_stmt(payload):
                         #               AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
                         #               """
 
-    elif payload["SQL_TYPE"] == 'UPDATE':
+    elif payload["SQL_TYPE"].upper() == 'UPDATE':
         sql_stmt = "UPDATE DS3_USERDATA."
-        if payload['TYPE'].startswith('CELLULAR'):
+        if payload['TYPE'].upper().startswith('CELLULAR'):
             sql_stmt += "CELLULAR_IC50_FLAGS"
-        elif payload['TYPE'].startswith('BIOCHEM'):
+        elif payload['TYPE'].upper().startswith('BIOCHEM'):
             sql_stmt += "BIOCHEM_IC50_FLAGS"
 
-        sql_stmt += f""" SET FLAG = {payload["FLAG"]}
+        sql_stmt += f""" SET FLAG = {payload["FLAG"]},
+                             USER_NAME = '{payload['USER_NAME']}',
+                             CHANGE_DATE = TO_TIMESTAMP('{datetime.now().strftime('%d-%b-%Y %H:%M:%S')}', 'DD-MON-YYYY HH24:MI:SS'),
+                             COMMENT_TEXT = '{payload['COMMENT_TEXT']}'
                          WHERE PID = '{payload["PID"]}'
                      """
 
     return sql_stmt, payload
 
 
-def get_table_data(sql_stmt, payload):
+def extract_data(output, payload):
+    if not output:
+        print(f"No data fetched for {payload['COMPOUND_ID']}")
+        return []
+    output_lst = []
+    prefix_type = payload['TYPE'].lower()
+    if prefix_type.endswith('agg'):
+        prefix_type = prefix_type.split('_')[0] + '_all'
+    field_names = field_names_dct[f'{prefix_type}_fields'].copy()
 
-    output = None
-    with OracleConnection(cred_dct['USERNAME'],
-                          cred_dct['PASSWORD'],
-                          cred_dct['HOST' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
-                          cred_dct['PORT'],
-                          cred_dct['SID']) as con:
-
-        if not getenv("ORACLE_CREDS_ARG"):
-            print(sql_stmt)
-
-        with con.cursor() as cursor:
-            cursor.execute(sql_stmt)
-            output = cursor.fetchall()
-            if not output:
-                print(f"No data fetched for {payload['COMPOUND_ID']}")
-                return []
-            output_lst = []
-            prefix_type = payload['TYPE'].lower()
-            if prefix_type.endswith('agg'):
-                prefix_type = prefix_type.split('_')[0] + '_all'
-            field_names = field_names_dct[f'{prefix_type}_fields'].copy()
-
-            for i, r in enumerate(output):
-                output_dct = {}
-                output_dct['ID'] = i
-                for j, n in enumerate(field_names):
-                    if n == 'PLOT':
-                        output_dct[n] = r[j].read().rstrip().replace("\r\n", "")
-                    else:
-                        output_dct[n] = r[j]
-                output_lst.append(output_dct)
-        return output_lst
+    for i, r in enumerate(output):
+        output_dct = {}
+        output_dct['ID'] = i
+        for j, n in enumerate(field_names):
+            if n == 'PLOT':
+                output_dct[n] = r[j].read().rstrip().replace("\r\n", "")
+            else:
+                output_dct[n] = r[j]
+        output_lst.append(output_dct)
+    return output_lst
 
 
-def generic_oracle_query(sql_stmt, commit=False):
+def generic_oracle_query(sql_stmt, payload):
+    try:
+        with OracleConnection(cred_dct['USERNAME'],
+                              cred_dct['PASSWORD'],
+                              cred_dct['HOST' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
+                              cred_dct['PORT'],
+                              cred_dct['SID']) as con:
 
-    with OracleConnection(cred_dct['USERNAME'],
-                          cred_dct['PASSWORD'],
-                          cred_dct['HOST' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
-                          cred_dct['PORT'],
-                          cred_dct['SID']) as con:
+            if getenv("INSTANCE_TYPE", None) is None:
+                print('-'*35)
+                print(sql_stmt)
+                print('-'*35)
 
-
-        with con.cursor() as cursor:
-            cursor.execute(sql_stmt)
-            if commit:
-                con.commit()
-            result = cursor.fetchone()
-
-        if getenv("INSTANCE_TYPE", None) is None:
-            print(sql_stmt)
-            print('-'*35)
-            print(result)
-
-        return result
+            with con.cursor() as cursor:
+                cursor.execute(sql_stmt)
+                # cursor.execute('SELECT * FROM SU_CELLULAR_GROWTH_DRC t1 INNER JOIN CELLULAR_IC50_FLAGS t2 ON t1.pid = t2.pid fetch first 1 row only')
+                if payload['SQL_TYPE'].upper() == 'UPDATE':
+                    con.commit()
+                    return {'STATUS': f'{payload["PID"]} row updated'}
+                elif payload['SQL_TYPE'].upper() == 'GET':
+                    result = extract_data(cursor.fetchall(), payload)
+                    if getenv("INSTANCE_TYPE", None) is None:
+                        print(result)
+                    return result
+                else:
+                    result = cursor.fetchone()
+                    return result
+    except Exception as e:
+        raise Exception(f'ERROR {e}')
