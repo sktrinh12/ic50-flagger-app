@@ -6,6 +6,8 @@ import TableRow from "@mui/material/TableRow";
 const EditableRow = ({
   keyValue,
   data,
+  flag,
+  commentRef,
   handleEditFormChange,
   handleCancelClick,
 }) => {
@@ -13,7 +15,12 @@ const EditableRow = ({
     return (
       <>
         {[0, 1, "include", "exclude"].includes(param) && column === "FLAG" ? (
-          <RadioButtonsGroup handleEditFormChange={handleEditFormChange} />
+          <RadioButtonsGroup
+            flag={flag}
+            data={data}
+            commentRef={commentRef}
+            handleEditFormChange={handleEditFormChange}
+          />
         ) : param ? (
           param.length > 60 ? (
             <img src={"data:image/png;base64, " + param} alt="EMPTY" />
