@@ -1,3 +1,5 @@
+# field names and snippets of sql text for backend calls
+
 field_names_dct = { 'cellular_stats_fields': [
     'COMPOUND_ID',
     'CRO',

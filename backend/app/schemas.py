@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Union, Optional
 
+# get and post schemas for data integrity and validation
+
 
 class GetDataSchema(BaseModel):
     compound_id: str
@@ -23,8 +25,8 @@ class GetDataSchema(BaseModel):
     cell_incu_hr: Union[int, str] = "NULL"
 
 
-class PostDataResponseSchema(BaseModel):
-    FLAG: int
-    PID: str
-    BATCH_ID: str
-    COMMENT_TEXT: str
+# class PostDataResponseSchema(BaseModel):
+#     FLAG: int
+#     PID: str
+#     BATCH_ID: str
+#     COMMENT_TEXT: str

@@ -7,16 +7,21 @@ import re
 
 
 def generate_sql_stmt(payload):
+    """
+    dynamically build sql statement string based on
+    conditions. Builds from sql module to inject the
+    base statement and appends as where clauses
+    """
     sql_stmt = None
     if payload["SQL_TYPE"] == "GET":
         if payload["TYPE"] == "BIOCHEM_ALL":
-            sql_stmt = sql_cmds['GEOMEAN_BIO_ALL']
+            sql_stmt = sql_cmds["GEOMEAN_BIO_ALL"]
 
-            if payload['PIDS']:
+            if payload["PIDS"]:
                 sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
             else:
                 sql_stmt += f"WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
-                if payload['GET_M_NUM_ROWS']:
+                if payload["GET_M_NUM_ROWS"]:
                     sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
                       AND t3.MODIFIER {'IS NULL' if payload["MODIFIER"].upper() == 'NULL' or payload["MODIFIER"] is None else f"= '{payload['MODIFIER']}'"}
                       AND t3.ATP_CONC_UM {'IS NULL' if bool(re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE)) else f"= {payload['ATP_CONC_UM']}"}
@@ -27,30 +32,31 @@ def generate_sql_stmt(payload):
                    """
 
         elif payload["TYPE"] == "BIOCHEM_AGG":
-            sql_stmt = sql_cmds['GEOMEAN_BIO_AGG'].format(payload['COMPOUND_ID'],
-                                                          payload['CRO'],
-                                                          payload['ASSAY_TYPE'],
-                                                          payload['COFACTORS'],
-                                                          payload['ATP_CONC_UM'],
-                                                          payload['VARIANT'],
-                                                          payload['MODIFIER']
-                                                          )
+            sql_stmt = sql_cmds["GEOMEAN_BIO_AGG"].format(
+                payload["COMPOUND_ID"],
+                payload["CRO"],
+                payload["ASSAY_TYPE"],
+                payload["COFACTORS"],
+                payload["ATP_CONC_UM"],
+                payload["VARIANT"],
+                payload["MODIFIER"],
+            )
 
         elif payload["TYPE"] == "BIOCHEM_STATS":
-            sql_stmt = sql_cmds['GEOMEAN_BIO_STATS'].format(payload['COMPOUND_ID'])
+            sql_stmt = sql_cmds["GEOMEAN_BIO_STATS"].format(payload["COMPOUND_ID"])
 
         elif payload["TYPE"].startswith("CELLULAR"):
             if payload["TYPE"].endswith("STATS"):
-                sql_stmt = sql_cmds['GEOMEAN_CELL_STATS'].format(payload['COMPOUND_ID'])
+                sql_stmt = sql_cmds["GEOMEAN_CELL_STATS"].format(payload["COMPOUND_ID"])
             else:
-                sql_stmt = sql_cmds['GEOMEAN_CELL_ALL']
+                sql_stmt = sql_cmds["GEOMEAN_CELL_ALL"]
 
-                if payload['PIDS']:
+                if payload["PIDS"]:
                     sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
                 else:
                     sql_stmt += f" WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
 
-                    if payload['GET_M_NUM_ROWS'] or payload["TYPE"] == "CELLULAR_AGG":
+                    if payload["GET_M_NUM_ROWS"] or payload["TYPE"] == "CELLULAR_AGG":
                         sql_stmt += f"""
                       AND t3.CRO = '{payload["CRO"]}'
                       AND t3.CELL_LINE {'IS NULL' if payload["CELL_LINE"] == 'NULL' or payload["CELL_LINE"] is None else f"= '{payload['CELL_LINE']}'"}
@@ -64,11 +70,11 @@ def generate_sql_stmt(payload):
                         #               AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
                         #               """
 
-    elif payload["SQL_TYPE"].upper() == 'UPDATE':
+    elif payload["SQL_TYPE"].upper() == "UPDATE":
         sql_stmt = "UPDATE DS3_USERDATA."
-        if payload['TYPE'].upper().startswith('CELLULAR'):
+        if payload["TYPE"].upper().startswith("CELLULAR"):
             sql_stmt += "CELLULAR_IC50_FLAGS"
-        elif payload['TYPE'].upper().startswith('BIOCHEM'):
+        elif payload["TYPE"].upper().startswith("BIOCHEM"):
             sql_stmt += "BIOCHEM_IC50_FLAGS"
 
         sql_stmt += f""" SET FLAG = {payload["FLAG"]},
@@ -82,20 +88,24 @@ def generate_sql_stmt(payload):
 
 
 def extract_data(output, payload):
+    """
+    helper function to extract data from sql output into
+    a py dict to generate response object
+    """
     if not output:
         print(f"No data fetched for {payload['COMPOUND_ID']}")
         return []
     output_lst = []
-    prefix_type = payload['TYPE'].lower()
-    if prefix_type.endswith('agg'):
-        prefix_type = prefix_type.split('_')[0] + '_all'
-    field_names = field_names_dct[f'{prefix_type}_fields'].copy()
+    prefix_type = payload["TYPE"].lower()
+    if prefix_type.endswith("agg"):
+        prefix_type = prefix_type.split("_")[0] + "_all"
+    field_names = field_names_dct[f"{prefix_type}_fields"].copy()
 
     for i, r in enumerate(output):
         output_dct = {}
-        output_dct['ID'] = i
+        output_dct["ID"] = i
         for j, n in enumerate(field_names):
-            if n == 'PLOT':
+            if n == "PLOT":
                 output_dct[n] = r[j].read().rstrip().replace("\r\n", "")
             else:
                 output_dct[n] = r[j]
@@ -104,25 +114,30 @@ def extract_data(output, payload):
 
 
 def generic_oracle_query(sql_stmt, payload):
+    """
+    connect to oracle db and execute the sql statement
+    return as response, aka the output
+    """
     try:
-        with OracleConnection(cred_dct['USERNAME'],
-                              cred_dct['PASSWORD'],
-                              cred_dct['HOST' if getenv('ORACLE_CREDS_ARG') else 'HOST-DEV'],
-                              cred_dct['PORT'],
-                              cred_dct['SID']) as con:
+        with OracleConnection(
+            cred_dct["USERNAME"],
+            cred_dct["PASSWORD"],
+            cred_dct["HOST" if getenv("ORACLE_CREDS_ARG") else "HOST-DEV"],
+            cred_dct["PORT"],
+            cred_dct["SID"],
+        ) as con:
 
             if getenv("INSTANCE_TYPE", None) is None:
-                print('-'*35)
+                print("-" * 35)
                 print(sql_stmt)
-                print('-'*35)
+                print("-" * 35)
 
             with con.cursor() as cursor:
                 cursor.execute(sql_stmt)
-                # cursor.execute('SELECT * FROM SU_CELLULAR_GROWTH_DRC t1 INNER JOIN CELLULAR_IC50_FLAGS t2 ON t1.pid = t2.pid fetch first 1 row only')
-                if payload['SQL_TYPE'].upper() == 'UPDATE':
+                if payload["SQL_TYPE"].upper() == "UPDATE":
                     con.commit()
-                    return {'STATUS': f'{payload["PID"]} row updated'}
-                elif payload['SQL_TYPE'].upper() == 'GET':
+                    return {"STATUS": f'{payload["PID"]} row updated'}
+                elif payload["SQL_TYPE"].upper() == "GET":
                     result = extract_data(cursor.fetchall(), payload)
                     if getenv("INSTANCE_TYPE", None) is None:
                         print(result)
@@ -131,4 +146,4 @@ def generic_oracle_query(sql_stmt, payload):
                     result = cursor.fetchone()
                     return result
     except Exception as e:
-        raise Exception(f'ERROR {e}')
+        raise Exception(f"ERROR {e}")
