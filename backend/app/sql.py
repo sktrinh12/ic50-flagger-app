@@ -31,6 +31,9 @@ field_names_dct = { 'cellular_stats_fields': [
     'PLOT',
     'IC50_NM',
     'FLAG',
+    'COMMENT_TEXT',
+    'USER_NAME',
+    'CHANGE_DATE',
     'GEOMEAN'
 ],
 
@@ -65,6 +68,9 @@ field_names_dct = { 'cellular_stats_fields': [
     'PLOT',
     'IC50_NM',
     'FLAG',
+    'COMMENT_TEXT',
+    'USER_NAME',
+    'CHANGE_DATE',
     'GEOMEAN'
 ]}
 
@@ -168,6 +174,9 @@ GROUP BY
         BASE64ENCODE(t3.GRAPH) as GRAPH,
         ROUND(t3.ic50_nm,2) as IC50_NM,
         t3.FLAG,
+        t3.COMMENT_TEXT,
+        t3.USER_NAME,
+        t3.CHANGE_DATE,
     ROUND( POWER(10,
        AVG( LOG(10, t3.ic50) ) OVER(PARTITION BY
         t3.CRO,
@@ -195,7 +204,10 @@ GROUP BY
          t2.FLAG,
          t1.ic50,
          t1.PID,
-         t1.ic50_nm
+         t1.ic50_nm,
+         t2.COMMENT_TEXT,
+         t2.USER_NAME,
+         t2.CHANGE_DATE
     FROM DS3_USERDATA.SU_CELLULAR_GROWTH_DRC t1
     INNER JOIN DS3_USERDATA.CELLULAR_IC50_FLAGS t2
     ON t1.pid = t2.pid) t3
