@@ -74,22 +74,22 @@ const FilterTab = ({ dtype, open, handleSearchFilter }) => {
           </Toolbar>
         </>
       )}
-				{ dtype.includes("stats") &&
-          <Toolbar style={inputStyles}>
-            <Input
-              label="Assay Type"
-              className={"width: 25%"}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              onChange={handleSearchFilter("ASSAY_TYPE")}
-            />
-          </Toolbar>
-												}
+      {dtype.includes("stats") && (
+        <Toolbar style={inputStyles}>
+          <Input
+            label="Assay Type"
+            className={"width: 25%"}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            onChange={handleSearchFilter("ASSAY_TYPE")}
+          />
+        </Toolbar>
+      )}
       {/all|agg/.test(dtype) && (
         <Toolbar style={inputStyles}>
           <Input
