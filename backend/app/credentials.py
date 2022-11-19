@@ -1,12 +1,17 @@
 from os import getenv
-
-cred_file = getenv("ORACLE_CREDS_ARG", "")
-
-# if env is dev read from local file else read from env vars
+# if env is prod read from env vars else read from local file
 
 cred_dct = {}
-if cred_file == "":
-    cred_file = "/Users/spencer.trinhkinnate.com/Documents/security_files/oracle2"
+if getenv("ORACLE_CREDS_ARG"):
+    cred_dct["HOST"] = getenv("ORACLE_HOST")
+    cred_dct["USERNAME"] = getenv("ORACLE_USER")
+    cred_dct["PASSWORD"] = getenv("ORACLE_PASS")
+    cred_dct["SID"] = getenv("ORACLE_SID")
+    cred_dct["PORT"] = getenv("ORACLE_PORT")
+    print('running in prod')
+else:
+    cred_file = \
+        "/Users/spencer.trinhkinnate.com/Documents/security_files/oracle2"
     with open(cred_file, "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -15,10 +20,3 @@ if cred_file == "":
             value = str_split[1].strip()
             cred_dct[key] = value
     print(f'running in dev: {cred_dct["HOST-DEV"]}')
-else:
-    cred_dct["HOST"] = getenv("ORACLE_HOST")
-    cred_dct["USERNAME"] = getenv("ORACLE_USER")
-    cred_dct["PASSWORD"] = getenv("ORACLE_PASS")
-    cred_dct["SID"] = getenv("ORACLE_SID")
-    cred_dct["PORT"] = getenv("ORACLE_PORT")
-    print(f'running in prod: {cred_dct["HOST"]}')
