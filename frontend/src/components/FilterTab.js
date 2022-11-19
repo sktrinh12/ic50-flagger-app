@@ -74,6 +74,52 @@ const FilterTab = ({ dtype, open, handleSearchFilter }) => {
           </Toolbar>
         </>
       )}
+      {/biochem_all|biochem_stats/.test(dtype) && (
+        <>
+          <Toolbar style={inputStyles}>
+            <Input
+              label="Target"
+              className={"width: 25%"}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              onChange={handleSearchFilter("TARGET")}
+            />
+          </Toolbar>
+          <Toolbar style={inputStyles}>
+            <Input
+              label="Variant"
+              className={"width: 25%"}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              onChange={handleSearchFilter("VARIANT")}
+            />
+          </Toolbar>
+          <Toolbar style={inputStyles}>
+            <Input
+              label="Cofactors"
+              className={"width: 25%"}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              onChange={handleSearchFilter("COFACTORS")}
+            />
+          </Toolbar>
+        </>
+      )}
       {dtype.includes("stats") && (
         <Toolbar style={inputStyles}>
           <Input
@@ -90,7 +136,7 @@ const FilterTab = ({ dtype, open, handleSearchFilter }) => {
           />
         </Toolbar>
       )}
-      {/all|agg/.test(dtype) && (
+      {/cellular_all|cellular_agg/.test(dtype) && (
         <Toolbar style={inputStyles}>
           <Input
             label="Passage #"
