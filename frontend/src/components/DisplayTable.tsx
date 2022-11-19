@@ -73,9 +73,10 @@ export default function DisplayTable() {
 
   let dtype = searchParams.get("type");
   let stype = searchParams.get("sql_type");
+
   // fetch the rows of data from db
-  const fetchData = async (getMRows = false, postData = null) => {
-    let newURL = [
+  const fetchData = async (getMRows = false) => {
+    let urlArray: string[] = [
       rootURL,
       searchParams.get("compound_id"),
       "&type=",
@@ -83,58 +84,52 @@ export default function DisplayTable() {
       "&sql_type=",
       stype,
       "&get_mnum_rows=",
-      getMRows,
+      getMRows.toString().replace(/[\n\r]+/g, ''),
     ];
 
-    if (dtype === "cellular_agg") {
-      newURL.push(
+    if (dtype.endsWith("agg")) {
+      urlArray.push(
         "&cro=",
         searchParams.get("cro") ?? "",
         "&assay=",
         searchParams.get("assay") ?? "",
-        "&cell_line=",
-        searchParams.get("cell_line") ?? "",
-        "&pct_serum=",
-        searchParams.get("pct_serum") ?? "",
-        "&cell_incu_hr=",
-        searchParams.get("cell_incu_hr") ?? "",
         "&variant=",
         (searchParams.get("variant") === "-"
           ? "null"
           : searchParams.get("variant")) ?? ""
       );
+      if (dtype.startsWith("cell")) {
+        urlArray.push(
+         "&cell_line=",
+         searchParams.get("cell_line") ?? "",
+         "&pct_serum=",
+         searchParams.get("pct_serum") ?? "",
+         "&cell_incu_hr=",
+         searchParams.get("cell_incu_hr") ?? "",
+        );
+      } else {
+        urlArray.push(
+          "&target=",
+          searchParams.get("target") ?? "null",
+          "&cofactors=",
+          searchParams.get("cofactors") ?? "null",
+          "&atp_conc_um=",
+          searchParams.get("atp_conc_um") ?? "",
+      );
+    }
     }
 
-    newURL = newURL.join("");
+    let newURL = urlArray.join("");
 
-    // if (postData) {
-    //   newURL += `&variant=${postData.VARIANT}`;
-    //   newURL += `&cro=${postData.CRO}`;
-    //   newURL += `&assay=${postData.ASSAY_TYPE}`;
-    //   if (dtype.startsWith("biochem")) {
-    //     newURL += `&target=${postData.TARGET}`;
-    //     newURL += `&cofactors=${postData.COFACTORS}`;
-    //     newURL += `&atp_conc=${postData.ATP_CONC_UM}`;
-    //     newURL += `&modifier=${postData.MODIFIER}`;
-    //   }
-    //   if (dtype.startsWith("cellular")) {
-    //     newURL += `&cell_line=${postData.CELL_LINE}`;
-    //     newURL += `&pct_serum=${postData.PCT_SERUM}`;
-    //     newURL += `&washout=${postData.WASHOUT}`;
-    //     newURL += `&cell_incu_hr=${postData.CELL_INCUBATION_HR}`;
-    //     newURL += `&passage_nbr=${postData.PASSAGE_NUMBER}`;
-    //   }
-    // }
-
-    if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
-      console.log(`url: ${newURL}`);
-    }
 
     await axios
       .get(newURL, axiosConfig)
       .then(async (res) => {
         const json = res.data;
-        // console.log(json);
+        if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
+          console.log(`url: ${newURL}`);
+          console.log(json);
+        }
         if (res.status === 200) {
           getMRows ? setMrowsData(json) : setTableData(json);
           // create dynamic refs for comments
@@ -234,10 +229,8 @@ export default function DisplayTable() {
           ? td.CELL_LINE === postDataObj.CELL_LINE &&
             td.PCT_SERUM === postDataObj.PCT_SERUM &&
             td.WASHOUT === postDataObj.WASHOUT &&
-            td.CELL_INCUBATION_HR === postDataObj.CELL_INCUBATION_HR &&
-            td.PASSAGE_NUMBER === postDataObj.PASSAGE_NUMBER
+            td.CELL_INCUBATION_HR === postDataObj.CELL_INCUBATION_HR
           : td.TARGET === postDataObj.TARGET &&
-            td.MODIFIER === postDataObj.MODIFIER &&
             td.COFACTORS === postDataObj.COFACTORS &&
             td.ATP_CONC_UM === postDataObj.ATP_CONC_UM)
           ? td.PID
@@ -322,7 +315,7 @@ export default function DisplayTable() {
         if (target.value === "") return items;
         else
           return items.filter(
-            (x) => x[field].toLowerCase().startsWith(target.value.toLowerCase())
+            (x) => x[field]?.toLowerCase().startsWith(target.value.toLowerCase())
             // new RegExp(target.value, "i").test(x[field])
           );
       },
@@ -340,14 +333,14 @@ export default function DisplayTable() {
             height: "100vh",
           }}
         >
-          <ReactLoading
-            type="spin"
-            color={PurpleColour}
-            height={667}
-            width={375}
-            margin="auto"
-            padding="10px"
-          />
+          <div style={{ margin: "auto", padding: "10px" }}>
+            <ReactLoading
+              type="spin"
+              color={PurpleColour}
+              height={667}
+              width={375}
+            />
+          </div>
         </Box>
       ) : (
         <Box sx={{ width: "100%" }}>
@@ -391,7 +384,7 @@ export default function DisplayTable() {
                             <ReadRow
                               keyValue={`${tdata.PID}-READ-${i}`}
                               data={tdata}
-															username={username}
+                              username={username}
                               types={[dtype, stype]}
                               columnLoading={
                                 columnLoading.includes(tdata.PID) ? true : false
