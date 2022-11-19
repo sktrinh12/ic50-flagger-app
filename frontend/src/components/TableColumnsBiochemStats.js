@@ -47,7 +47,15 @@ module.exports = {
     {
       id: "ATP_CONC_UM",
       label: "ATP Conc (uM)",
-      minWidth: 60,
+      minWidth: 40,
+      fontWeight: "bold",
+      backgroundColor: PurpleColour,
+      color: "#efeff6ff",
+    },
+    {
+      id: "COFACTORS",
+      label: "Cofactors",
+      minWidth: 50,
       fontWeight: "bold",
       backgroundColor: PurpleColour,
       color: "#efeff6ff",
