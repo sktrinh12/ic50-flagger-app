@@ -4,7 +4,14 @@ import TableRow from "@mui/material/TableRow";
 import ReactLoading from "react-loading";
 import { PurpleColour } from "./Colour";
 
-const ReadRow = ({ keyValue, data, username, types, columnLoading, handleEditClick }) => {
+const ReadRow = ({
+  keyValue,
+  data,
+  username,
+  types,
+  columnLoading,
+  handleEditClick,
+}) => {
   const handleDynamicValue = (columnName, value) => {
     if (columnName === "FLAG") {
       switch (value) {
@@ -32,7 +39,8 @@ const ReadRow = ({ keyValue, data, username, types, columnLoading, handleEditCli
   };
 
   var DataFields = null;
-  if ("CELL_INCUBATION_HR" in data) {
+  let checkIfCellular = "CELL_INCUBATION_HR" in data;
+  if (checkIfCellular) {
     if ("N_OF_M" in data) {
       DataFields = require("./TableColumnsCellularStats");
     } else {
@@ -56,7 +64,7 @@ const ReadRow = ({ keyValue, data, username, types, columnLoading, handleEditCli
     >
       {DataFields.columns.map((column, i) => {
         const value = data[column.id];
-        const getURL = [
+        let urlArray = [
           "/get-data?compound_id=",
           data.COMPOUND_ID,
           "&type=",
@@ -68,31 +76,49 @@ const ReadRow = ({ keyValue, data, username, types, columnLoading, handleEditCli
           "&assay=",
           data.ASSAY_TYPE,
           "&get_mnum_rows=false",
-          "&cell_line=",
-          data.CELL_LINE,
-          "&pct_serum=",
-          data.PCT_SERUM,
-          "&cell_incu_hr=",
-          data.CELL_INCUBATION_HR,
           "&variant=",
-          data.VARIANT === "-" ? "null" : data.VARIANT,
+          !data.VARIANT || data.VARIANT === "-" ? "null" : data.VARIANT,
           "&user_name=",
           username,
-        ].join("");
+        ];
+
+				checkIfCellular
+          ? urlArray.push(
+                "&cell_line=",
+                data.CELL_LINE,
+                "&pct_serum=",
+                data.PCT_SERUM,
+                "&atp_conc_um=",
+                data.ATP_CONC_UM,
+                "&cell_incu_hr=",
+                data.CELL_INCUBATION_HR,
+            )
+          : urlArray.push(
+                "&target=",
+                data.TARGET,
+                "&atp_conc_um=",
+                data.ATP_CONC_UM,
+                "&cofactors=",
+                !data.COFACTORS || data.COFACTORS === "-"
+                  ? "null"
+                  : data.COFACTORS,
+            );
+
+        let getURL = urlArray.join("");
 
         // console.log(`the nested URL: ${getURL}`);
 
         return (
           <TableCell align={column.align} key={`${keyValue}-${i}`}>
             {columnLoading && column.id === "GEOMEAN" ? (
-              <ReactLoading
-                type="spin"
-                color={PurpleColour}
-                height={30}
-                width={30}
-                margin="auto"
-                padding="0px"
-              />
+              <div style={{ margin: "auto", padding: "0px" }}>
+                <ReactLoading
+                  type="spin"
+                  color={PurpleColour}
+                  height={30}
+                  width={30}
+                />
+              </div>
             ) : column.id === "GEOMEAN" && data.N_OF_M ? (
               <a href={getURL} target="_blank" rel="noopener noreferrer">
                 {value}
