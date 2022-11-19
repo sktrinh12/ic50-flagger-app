@@ -32,15 +32,23 @@ def generate_sql_stmt(payload):
                    """
 
         elif payload["TYPE"] == "BIOCHEM_AGG":
-            sql_stmt = sql_cmds["GEOMEAN_BIO_AGG"].format(
-                payload["COMPOUND_ID"],
-                payload["CRO"],
-                payload["ASSAY_TYPE"],
-                payload["COFACTORS"],
-                payload["ATP_CONC_UM"],
-                payload["VARIANT"],
-                payload["MODIFIER"],
-            )
+            sql_stmt = sql_cmds["GEOMEAN_BIO_ALL"]
+
+            if payload["PIDS"]:
+                sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
+            else:
+                sql_stmt += f" WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
+
+                if payload["GET_M_NUM_ROWS"] or payload["TYPE"] == "BIOCHEM_AGG":
+                    sql_stmt += f"""
+                  AND t3.CRO = '{payload["CRO"]}'
+                  AND t3.TARGET {'IS NULL' if payload["TARGET"] == 'NULL' or payload["TARGET"] is None else f"= '{payload['TARGET']}'"}
+                  AND t3.ATP_CONC_UM = {payload["ATP_CONC_UM"]}
+                  AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
+                  AND t3.COFACTORS {'IS NULL' if bool(re.search('null',
+                                                      payload["COFACTORS"], re.IGNORECASE)) or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
+                  AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
+                  """
 
         elif payload["TYPE"] == "BIOCHEM_STATS":
             sql_stmt = sql_cmds["GEOMEAN_BIO_STATS"].format(payload["COMPOUND_ID"])
@@ -65,10 +73,6 @@ def generate_sql_stmt(payload):
                       AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= '{payload['CELL_INCUBATION_HR']}'"}
                       AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
                       """
-                        # if payload["TYPE"].endswith("ALL"):
-                        #     sql_stmt += f"""AND t3.WASHOUT {'IS NULL' if payload["WASHOUT"] == 'NULL' or payload["WASHOUT"] is None else f"= '{payload['WASHOUT']}'"}
-                        #               AND t3.PASSAGE_NUMBER {'IS NULL' if payload["PASSAGE_NUMBER"] == 'NULL' or payload["PASSAGE_NUMBER"] is None else f"= '{payload['PASSAGE_NUMBER']}'"}
-                        #               """
 
     elif payload["SQL_TYPE"].upper() == "UPDATE":
         sql_stmt = "UPDATE DS3_USERDATA."
