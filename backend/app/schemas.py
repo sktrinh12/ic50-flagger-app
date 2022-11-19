@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Union, Optional
+from typing import Optional
 
 # get and post schemas for data integrity and validation
 
@@ -13,7 +13,7 @@ class GetDataSchema(BaseModel):
     assay: Optional[str] = None
     variant: Optional[str] = None
     # BIOCHEM
-    atp_conc: Union[float, str] = "NULL"
+    atp_conc_um: Optional[int] = 0
     target: Optional[str] = None
     cofactors: Optional[str] = None
     modifier: Optional[str] = None
@@ -22,7 +22,7 @@ class GetDataSchema(BaseModel):
     pct_serum: Optional[int] = None
     washout: Optional[str] = None
     passage_nbr: Optional[str] = None
-    cell_incu_hr: Union[int, str] = "NULL"
+    cell_incu_hr: Optional[int] = 0
 
 
 # class PostDataResponseSchema(BaseModel):
