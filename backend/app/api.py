@@ -44,6 +44,7 @@ async def get_data(
     payload["SQL_TYPE"] = mdata.sql_type.upper()
     payload["PIDS"] = pids
     payload["GET_M_NUM_ROWS"] = eval(mdata.get_mnum_rows.title())
+    # print(mdata)
     if pids:
         print(f"PIDS: {pids}")
     if mdata.cro:
@@ -56,8 +57,8 @@ async def get_data(
         payload["COFACTORS"] = mdata.cofactors
     if mdata.assay:
         payload["ASSAY_TYPE"] = mdata.assay
-    if mdata.atp_conc:
-        payload["ATP_CONC_UM"] = str(mdata.atp_conc)
+    if mdata.atp_conc_um:
+        payload["ATP_CONC_UM"] = str(int(mdata.atp_conc_um))
     if mdata.modifier:
         payload["MODIFIER"] = mdata.modifier
     # CELLULAR
@@ -96,7 +97,7 @@ async def update_data(payload: Request, sql_type: str, type: str, user_name: str
     payload["TYPE"] = type.upper()
     payload["USER_NAME"] = user_name
     sql_stmt, rtn_payload = generate_sql_stmt(payload)
-    print(f"PAYLOAD: {rtn_payload}")
+    # print(f"PAYLOAD: {rtn_payload}")
     result = generic_oracle_query(sql_stmt, rtn_payload)
     if result:
         STATUS_CODE = status.HTTP_200_OK
