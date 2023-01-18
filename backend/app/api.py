@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
 from .db import generic_oracle_query, generate_sql_stmt
 from fastapi.middleware.cors import CORSMiddleware
-from .schemas import GetDataSchema
+from .schemas import GetDataBaseSchema, GetDataFineSchema
 from fastapi import Query
 from typing import List
+from statistics import stdev
+from json import load
 
 
 app = FastAPI()
@@ -34,16 +36,20 @@ def read_root():
 # fetch table data endpoint
 @app.get("/v1/fetch-data", tags=["get-data"])
 async def get_data(
-    mdata: GetDataSchema = Depends(), pids: List[str] = Query(default=[])
+    mdata: GetDataFineSchema = Depends(), pids: List[str] = Query(default=[])
 ) -> Response:
-    if not mdata.compound_id.startswith("FT") and len(mdata.compound_id) != 8:
-        raise HTTPException(status_code=404, detail=f"{mdata.compound_id} is invalid")
     payload = {}
-    payload["COMPOUND_ID"] = mdata.compound_id
+    if mdata.compound_id:
+        if not mdata.compound_id.startswith("FT") and len(mdata.compound_id) != 8:
+            raise HTTPException(
+                status_code=404, detail=f"{mdata.compound_id} is invalid"
+            )
+        payload["COMPOUND_ID"] = mdata.compound_id
     payload["TYPE"] = mdata.type.upper()
     payload["SQL_TYPE"] = mdata.sql_type.upper()
     payload["PIDS"] = pids
     payload["GET_M_NUM_ROWS"] = eval(mdata.get_mnum_rows.title())
+    payload["N_LIMIT"] = mdata.n_limit
     # print(mdata)
     if pids:
         print(f"PIDS: {pids}")
@@ -58,9 +64,7 @@ async def get_data(
     if mdata.assay:
         payload["ASSAY_TYPE"] = mdata.assay
     if mdata.atp_conc_um:
-        payload["ATP_CONC_UM"] = str(int(mdata.atp_conc_um))
-    if mdata.modifier:
-        payload["MODIFIER"] = mdata.modifier
+        payload["ATP_CONC_UM"] = mdata.atp_conc_um
     # CELLULAR
     if mdata.pct_serum:
         payload["PCT_SERUM"] = mdata.pct_serum
@@ -71,13 +75,21 @@ async def get_data(
     if mdata.passage_nbr:
         payload["PASSAGE_NUMBER"] = mdata.passage_nbr
     if mdata.cell_incu_hr:
-        payload["CELL_INCUBATION_HR"] = mdata.cell_incu_hr
+        payload["CELL_INCUBATION_HR"] = int(mdata.cell_incu_hr)
     # print(mdata)
     # print(payload)
     sql_stmt, return_payload = generate_sql_stmt(payload)
     print(return_payload)
     print("-" * 35)
     results = generic_oracle_query(sql_stmt, return_payload)
+    if mdata.type == "msr_data":
+        diff_ic50 = {0}
+        # calculate MSR manually instead of on SQL side
+        for jd in results:
+            diff_ic50.add(jd["DIFF_IC50"])
+        msr = 10 ** (2 * stdev(diff_ic50))
+        # print(f"MSR: {msr}")
+        results.append({"MSR": msr})
     return results
 
 
