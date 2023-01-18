@@ -1,33 +1,33 @@
-import { useEffect, useState, useRef, createRef } from "react";
-import ReadRow from "./ReadRow";
-import EditableRow from "./EditableRow";
-import EnchancedTableHead from "./EnhancedTableHead";
-import * as React from "react";
-import axios from "axios";
-import { useSearchParams } from "react-router-dom";
-import ReactLoading from "react-loading";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableContainer from "@mui/material/TableContainer";
-import TablePagination from "@mui/material/TablePagination";
-import Box from "@mui/material/Box";
-import { sortedRowInformation, getComparator } from "./TableSortFunctions";
-import { PurpleColour } from "./Colour";
-import FilterTab from "./FilterTab";
+import { useEffect, useState, useRef, createRef } from 'react'
+import ReadRow from './ReadRow'
+import EditableRow from './EditableRow'
+import EnchancedTableHead from './EnhancedTableHead'
+import * as React from 'react'
+import axios from 'axios'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import ReactLoading from 'react-loading'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableContainer from '@mui/material/TableContainer'
+import TablePagination from '@mui/material/TablePagination'
+import Box from '@mui/material/Box'
+import { sortedRowInformation, getComparator } from './TableSortFunctions'
+import { PurpleColour } from './Colour'
+import FilterTab from './FilterTab'
 
 interface TableDataType {
-  ID: number;
-  PID: string;
-  EXPERIMENT_ID: string;
-  BATCH_ID: string;
-  TARGET: string;
-  VARIANT: string;
-  FLAG: number;
+  ID: number
+  PID: string
+  EXPERIMENT_ID: string
+  BATCH_ID: string
+  TARGET: string
+  VARIANT: string
+  FLAG: number
 }
 
-export default function DisplayTable() {
-  const { REACT_APP_BACKEND_URL } = process.env;
+export default function DisplayTable({ axiosConfig }) {
+  const { REACT_APP_BACKEND_URL } = process.env
   const [tableData, setTableData] = useState([
     {
       ID: null,
@@ -37,187 +37,227 @@ export default function DisplayTable() {
       VARIANT: null,
       FLAG: null,
     },
-  ]);
+  ])
+  const [plotData, setPlotData] = useState([])
+  const [plotDataTrigger, setPlotDataTrigger] = useState(false)
+  const navigate = useNavigate()
+
   // for comment and username references
-  const commentRefs = useRef([]);
+  const commentRefs = useRef([])
   // PARAMETERS
-  const [flag, setFlag] = useState("");
-  const [editFlag, setEditFlag] = useState(null);
-  const [username, setUsername] = useState("TESTADMIN");
-  const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [columnLoading, setColumnLoading] = useState([]);
+  const [flag, setFlag] = useState('')
+  const [editFlag, setEditFlag] = useState(null)
+  const [username, setUsername] = useState('TESTADMIN')
+  const [searchParams] = useSearchParams()
+  const [loading, setLoading] = useState(true)
+  const [columnLoading, setColumnLoading] = useState([])
   // MUI TABLE
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [page, setPage] = React.useState(0)
+  const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [filterFn, setFilterFn] = useState({
     fn: (items) => {
-      return items;
+      return items
     },
-  });
+  })
   // PAGE CONTROLS
-  const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("ID");
-  const rootURL = `${REACT_APP_BACKEND_URL}/v1/fetch-data?compound_id=`;
-  const [open, setOpen] = useState(false);
+  const [order, setOrder] = useState('asc')
+  const [orderBy, setOrderBy] = useState('ID')
+  const rootURL = `${REACT_APP_BACKEND_URL}/v1/fetch-data?compound_id=`
+  const [open, setOpen] = useState(false)
 
-  const axiosConfig = {
-    withCredentials: false,
-    headers: {
-      "Content-Type":
-        "application/x-www-form-urlencoded;charset=UTF-8;application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,PUT,POST",
-    },
-  };
+  let dtype = searchParams.get('type') ?? ''
+  let stype = searchParams.get('sql_type') ?? ''
+  let cro = searchParams.get('cro') ?? ''
+  let assay = searchParams.get('assay') ?? ''
+  let cell_line = searchParams.get('cell_line') ?? ''
+  let pct_serum = searchParams.get('pct_serum') ?? ''
+  let cell_incu_hr = searchParams.get('cell_incu_hr') ?? ''
+  let target = searchParams.get('target') ?? 'null'
+  let cofactors = searchParams.get('cofactors') ?? 'null'
+  let atp_conc_um = searchParams.get('atp_conc_um') ?? ''
+  let newURL: string
 
-  let dtype = searchParams.get("type");
-  let stype = searchParams.get("sql_type");
+  let urlArray: string[] = [
+    rootURL,
+    searchParams.get('compound_id') ?? '',
+    '&type=',
+    dtype,
+    '&sql_type=',
+    stype,
+    '&get_mnum_rows=',
+    'false',
+  ]
+
+  if (dtype.endsWith('agg')) {
+    urlArray.push(
+      '&cro=',
+      cro,
+      '&assay=',
+      assay,
+      '&variant=',
+      (searchParams.get('variant') === '-'
+        ? 'null'
+        : searchParams.get('variant')) ?? ''
+    )
+    if (dtype.startsWith('cell')) {
+      urlArray.push(
+        '&cell_line=',
+        cell_line,
+        '&pct_serum=',
+        pct_serum,
+        '&cell_incu_hr=',
+        cell_incu_hr
+      )
+    } else {
+      urlArray.push(
+        '&target=',
+        target,
+        '&cofactors=',
+        cofactors,
+        '&atp_conc_um=',
+        atp_conc_um
+      )
+    }
+  }
+
+  newURL = urlArray.join('')
+
+  // plotting data
+  const fetchPlotData = async () => {
+    const url = `${newURL
+      .replace('3000', '8000')
+      .replace(/type=\w+&/, 'type=msr_data&')}`
+    console.log(url)
+    await axios
+      .get(url, axiosConfig)
+      .then(async (res) => {
+        const json = res.data
+        if (res.status === 200) {
+          setPlotData(json)
+          console.log(plotData)
+        }
+      })
+      .catch((err) => {
+        console.log('AXIOS ERROR: ', err)
+      })
+  }
 
   // fetch the rows of data from db
   const fetchData = async (getMRows = false) => {
-    let urlArray: string[] = [
-      rootURL,
-      searchParams.get("compound_id"),
-      "&type=",
-      dtype,
-      "&sql_type=",
-      stype,
-      "&get_mnum_rows=",
-      getMRows.toString().replace(/[\n\r]+/g, ''),
-    ];
-
-    if (dtype.endsWith("agg")) {
-      urlArray.push(
-        "&cro=",
-        searchParams.get("cro") ?? "",
-        "&assay=",
-        searchParams.get("assay") ?? "",
-        "&variant=",
-        (searchParams.get("variant") === "-"
-          ? "null"
-          : searchParams.get("variant")) ?? ""
-      );
-      if (dtype.startsWith("cell")) {
-        urlArray.push(
-         "&cell_line=",
-         searchParams.get("cell_line") ?? "",
-         "&pct_serum=",
-         searchParams.get("pct_serum") ?? "",
-         "&cell_incu_hr=",
-         searchParams.get("cell_incu_hr") ?? "",
-        );
-      } else {
-        urlArray.push(
-          "&target=",
-          searchParams.get("target") ?? "null",
-          "&cofactors=",
-          searchParams.get("cofactors") ?? "null",
-          "&atp_conc_um=",
-          searchParams.get("atp_conc_um") ?? "",
-      );
-    }
-    }
-
-    let newURL = urlArray.join("");
-
-
+    const getMRowsStr = getMRows.toString().replace(/[\n\r]+/g, '')
+    const indexGetMRows = urlArray.findIndex((el) =>
+      el.includes('&get_mnum_rows=')
+    )
+    urlArray[indexGetMRows + 1] = getMRowsStr
+    newURL = urlArray.join('')
     await axios
       .get(newURL, axiosConfig)
       .then(async (res) => {
-        const json = res.data;
+        const json = res.data
         if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
-          console.log(`url: ${newURL}`);
-          console.log(json);
+          console.log(`url: ${newURL}`)
+          // console.log(json)
         }
         if (res.status === 200) {
-          getMRows ? setMrowsData(json) : setTableData(json);
+          getMRows ? setMrowsData(json) : setTableData(json)
           // create dynamic refs for comments
-          const tableLength = tableData.length;
+          const tableLength = tableData.length
           // console.log(`table length: ${tableLength}`);
           if (commentRefs.current.length !== tableLength) {
             commentRefs.current = Array(tableLength)
               .fill()
-              .map((_, i) => commentRefs.current[i] || createRef());
+              .map((_, i) => commentRefs.current[i] || createRef())
           }
-          setUsername(searchParams.get("user_name"));
+          setUsername(searchParams.get('user_name'))
         }
-        setLoading(false);
+        setLoading(false)
       })
       .catch((err) => {
-        console.log("AXIOS ERROR: ", err);
-      });
-  };
+        console.log('AXIOS ERROR: ', err)
+      })
+  }
 
   useEffect(() => {
-    fetchData();
+    fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
+
+  useEffect(() => {
+    fetchPlotData()
+    setPlotDataTrigger(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plotDataTrigger])
 
   // change only affected rows and values
   const setMrowsData = (postDataRows) => {
-    console.log("ROWS");
-    console.log(postDataRows);
-    console.log("------------");
-    console.log("TABLEDATA");
+    console.log('ROWS')
+    console.log(postDataRows)
+    console.log('------------')
+    console.log('TABLEDATA')
 
     const newTableData = tableData.map((a) => {
       postDataRows.forEach((e) => {
         if (a.PID === e.PID) {
-          a.GEOMEAN = e.GEOMEAN;
-          a.COMMENT_TEXT = e.COMMENT_TEXT;
-          a.CHANGE_DATE = e.CHANGE_DATE;
-          a.USER_NAME = e.USER_NAME;
+          a.GEOMEAN = e.GEOMEAN
+          a.COMMENT_TEXT = e.COMMENT_TEXT
+          a.CHANGE_DATE = e.CHANGE_DATE
+          a.USER_NAME = e.USER_NAME
         }
-      });
-      return a;
-    });
-    setTableData(newTableData);
-    setColumnLoading([]);
-  };
+      })
+      return a
+    })
+    setTableData(newTableData)
+    setColumnLoading([])
+  }
+
+  const handleNavToPlot = () => {
+    setPlotDataTrigger(true)
+    // console.log(plotData)
+    navigate('/plot', { state: { tableData: tableData, plotData: plotData } })
+  }
 
   const handleFilterIconClick = () => {
-    setOpen(!open);
-  };
+    setOpen(!open)
+  }
 
   // set the flag value when click on radio button
   const handleEditFormChange = (event) => {
-    event.preventDefault();
-    const flagValue = event.target.value;
+    event.preventDefault()
+    const flagValue = event.target.value
     // console.log(`the target value: ${flagValue}`);
     // const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
     // const newTableData = [...tableData];
     // newTableData[index]["FLAG"] = flagValue;
     // console.log(newTableData);
-    setFlag(flagValue);
-  };
+    setFlag(flagValue)
+  }
 
   // post data to db
   const handleEditFormSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
     const url = [
       REACT_APP_BACKEND_URL,
-      "/v1/change-data?sql_type=update&type=",
-      dtype.split("_")[0],
-      "&user_name=",
+      '/v1/change-data?sql_type=update&type=',
+      dtype.split('_')[0],
+      '&user_name=',
       username,
-    ].join("");
+    ].join('')
     // console.log(`url: ${url}`);
 
-    const newTableData = [...tableData];
-    const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
+    const newTableData = [...tableData]
+    const index = tableData.findIndex((tdata) => tdata.ID === editFlag)
 
     // console.log(`flag: ${flag}`);
-    newTableData[index]["FLAG"] = flag === "include" ? 0 : 1;
-    setEditFlag(null);
-    let tmpPostDataObj = Object.assign({}, newTableData[index]);
+    newTableData[index]['FLAG'] = flag === 'include' ? 0 : 1
+    setEditFlag(null)
+    let tmpPostDataObj = Object.assign({}, newTableData[index])
 
     /* use Babel you can use the following syntax to copy property 
 				PLOT from tmpPostData into variable PLOT and then copy 
 				rest of properties into variable postDataObj; to exclude in payload
 		*/
-    let { PLOT, ...postDataObj } = tmpPostDataObj;
+    let { PLOT, ...postDataObj } = tmpPostDataObj
 
     let pids = newTableData
       .map((td) =>
@@ -225,7 +265,7 @@ export default function DisplayTable() {
         td.CRO === postDataObj.CRO &&
         td.ASSAY_TYPE === postDataObj.ASSAY_TYPE &&
         td.VARIANT === postDataObj.VARIANT &&
-        ("CELL_LINE" in td
+        ('CELL_LINE' in td
           ? td.CELL_LINE === postDataObj.CELL_LINE &&
             td.PCT_SERUM === postDataObj.PCT_SERUM &&
             td.WASHOUT === postDataObj.WASHOUT &&
@@ -236,12 +276,12 @@ export default function DisplayTable() {
           ? td.PID
           : null
       )
-      .filter((e) => e !== null);
-    console.log(`pids: ${pids}`);
-    setColumnLoading(pids);
+      .filter((e) => e !== null)
+    console.log(`pids: ${pids}`)
+    setColumnLoading(pids)
 
-    tmpPostDataObj["COMMENT_TEXT"] = handleElmChangeFromRef(index);
-    tmpPostDataObj["USER_NAME"] = username; // over-write the username
+    tmpPostDataObj['COMMENT_TEXT'] = handleElmChangeFromRef(index)
+    tmpPostDataObj['USER_NAME'] = username // over-write the username
     // Using Object Destructuring and Property Shorthand to select certain keys
     tmpPostDataObj = (({ BATCH_ID, FLAG, PID, COMMENT_TEXT, USER_NAME }) => ({
       BATCH_ID,
@@ -249,93 +289,94 @@ export default function DisplayTable() {
       PID,
       COMMENT_TEXT,
       USER_NAME,
-    }))(tmpPostDataObj);
-    console.log(tmpPostDataObj);
+    }))(tmpPostDataObj)
+    console.log(tmpPostDataObj)
 
     axios
       .post(url, tmpPostDataObj, axiosConfig)
       .then((res) => {
         if (res.status === 200) {
-          fetchData(true, postDataObj);
+          fetchData(true)
         }
-        console.log("RESPONSE RECEIVED: ", res);
+        console.log('RESPONSE RECEIVED: ', res)
       })
       .catch((err) => {
-        console.log("AXIOS ERROR: ", err);
-      });
-  };
+        console.log('AXIOS ERROR: ', err)
+      })
+  }
 
   // grab the comment using vanilla js and indexing the elm ref
   const handleElmChangeFromRef = (idx: number) => {
-    const parentElm = commentRefs.current[idx];
-    const textValue = parentElm.getElementsByTagName("textarea")[0].value;
-    return textValue;
-  };
+    const parentElm = commentRefs.current[idx]
+    const textValue = parentElm.getElementsByTagName('textarea')[0].value
+    return textValue
+  }
 
   // trigger change to edit mode for <ReadRow>
   const handleEditClick = (event, tdata) => {
-    event.preventDefault();
-    setEditFlag(tdata.ID);
+    event.preventDefault()
+    setEditFlag(tdata.ID)
 
-    let flagValue = tdata.FLAG;
-    flagValue = flagValue === 0 ? "include" : "exclude";
+    let flagValue = tdata.FLAG
+    flagValue = flagValue === 0 ? 'include' : 'exclude'
     // console.log(flagValue);
 
-    setFlag(flagValue);
-  };
+    setFlag(flagValue)
+  }
 
   // cancel from edit mode
   const handleCancelClick = () => {
-    setEditFlag(null);
-  };
+    setEditFlag(null)
+  }
 
   // for pagination
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+    setPage(newPage)
+  }
 
   // for number of pages
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
+    setRowsPerPage(+event.target.value)
+    setPage(0)
+  }
 
   // sort the columns
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
+    const isAsc = orderBy === property && order === 'asc'
+    setOrder(isAsc ? 'desc' : 'asc')
+    setOrderBy(property)
+  }
 
   // filter rows based on input text
   const handleSearchFilter = (field) => (e) => {
-    let target = e.target;
+    let target = e.target
     setFilterFn({
       fn: (items) => {
-        if (target.value === "") return items;
+        if (target.value === '') return items
         else
           return items.filter(
-            (x) => x[field]?.toLowerCase().startsWith(target.value.toLowerCase())
+            (x) =>
+              x[field]?.toLowerCase().startsWith(target.value.toLowerCase())
             // new RegExp(target.value, "i").test(x[field])
-          );
+          )
       },
-    });
-  };
+    })
+  }
 
   return (
     <>
       {loading ? (
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
           }}
         >
-          <div style={{ margin: "auto", padding: "10px" }}>
+          <div style={{ margin: 'auto', padding: '10px' }}>
             <ReactLoading
-              type="spin"
+              type='spin'
               color={PurpleColour}
               height={667}
               width={375}
@@ -343,16 +384,17 @@ export default function DisplayTable() {
           </div>
         </Box>
       ) : (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: '100%' }}>
           <form onSubmit={handleEditFormSubmit}>
-            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
               <TableContainer sx={{ maxHeight: 1000 }}>
                 <FilterTab
                   dtype={dtype}
                   open={open}
                   handleSearchFilter={handleSearchFilter}
+                  handleNavToPlot={handleNavToPlot}
                 />
-                <Table stickyHeader aria-label="sticky table">
+                <Table stickyHeader aria-label='sticky table'>
                   <EnchancedTableHead
                     order={order}
                     orderBy={orderBy}
@@ -399,7 +441,7 @@ export default function DisplayTable() {
               </TableContainer>
               <TablePagination
                 rowsPerPageOptions={[10, 25, 100]}
-                component="div"
+                component='div'
                 count={tableData.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
@@ -411,5 +453,5 @@ export default function DisplayTable() {
         </Box>
       )}
     </>
-  );
+  )
 }
