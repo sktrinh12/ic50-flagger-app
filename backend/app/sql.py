@@ -1,84 +1,92 @@
 # field names and snippets of sql text for backend calls
 
-field_names_dct = {'cellular_stats_fields': [
-    'COMPOUND_ID',
-    'CRO',
-    'ASSAY_TYPE',
-    'CELL_LINE',
-    'VARIANT',
-    'CELL_INCUBATION_HR',
-    'PCT_SERUM',
-    'MINUS_3STDEV',
-    'PLUS_3STDEV',
-    'MINUS_3VAR',
-    'PLUS_3VAR',
-    'GEOMEAN',
-    'N_OF_M',
-    'STDEV'
-],
-
-    'cellular_all_fields': [
-        'PID',
-        'CRO',
-        'ASSAY_TYPE',
-        'COMPOUND_ID',
-        'EXPERIMENT_ID',
-        'BATCH_ID',
-        'CELL_LINE',
-        'VARIANT',
-        'PCT_SERUM',
-        'PASSAGE_NUMBER',
-        'WASHOUT',
-        'CELL_INCUBATION_HR',
-        'PLOT',
-        'IC50_NM',
-        'FLAG',
-        'COMMENT_TEXT',
-        'USER_NAME',
-        'CHANGE_DATE',
-        'GEOMEAN'
+field_names_dct = {
+    "cellular_stats_fields": [
+        "COMPOUND_ID",
+        "CRO",
+        "ASSAY_TYPE",
+        "CELL_LINE",
+        "VARIANT",
+        "CELL_INCUBATION_HR",
+        "PCT_SERUM",
+        "MINUS_3STDEV",
+        "PLUS_3STDEV",
+        "MINUS_3VAR",
+        "PLUS_3VAR",
+        "GEOMEAN",
+        "N_OF_M",
+        "STDEV",
     ],
-
-    'biochem_stats_fields': [
-        'COMPOUND_ID',
-        'CRO',
-        'ASSAY_TYPE',
-        'TARGET',
-        'VARIANT',
-        'COFACTORS',
-        'ATP_CONC_UM',
-        'GEOMEAN',
-        'MINUS_3STDEV',
-        'PLUS_3STDEV',
-        'MINUS_3VAR',
-        'PLUS_3VAR',
-        'N_OF_M',
-        'STDEV'
+    "cellular_all_fields": [
+        "PID",
+        "CREATED_DATE",
+        "CRO",
+        "ASSAY_TYPE",
+        "COMPOUND_ID",
+        "EXPERIMENT_ID",
+        "BATCH_ID",
+        "CELL_LINE",
+        "VARIANT",
+        "PCT_SERUM",
+        "PASSAGE_NUMBER",
+        "WASHOUT",
+        "CELL_INCUBATION_HR",
+        "PLOT",
+        "IC50_NM",
+        "FLAG",
+        "COMMENT_TEXT",
+        "USER_NAME",
+        "CHANGE_DATE",
+        "GEOMEAN",
     ],
-
-    'biochem_all_fields': [
-        'PID',
-        'CRO',
-        'ASSAY_TYPE',
-        'COMPOUND_ID',
-        'EXPERIMENT_ID',
-        'BATCH_ID',
-        'TARGET',
-        'VARIANT',
-        'COFACTORS',
-        'ATP_CONC_UM',
-        'PLOT',
-        'IC50_NM',
-        'FLAG',
-        'COMMENT_TEXT',
-        'USER_NAME',
-        'CHANGE_DATE',
-        'GEOMEAN'
-    ]}
+    "msr_data_fields": [
+        "COMPOUND_ID",
+        "CREATED_DATE",
+        "ROW_COUNT",
+        "CNT",
+        "IC50_NM",
+        "DIFF_IC50",
+    ],
+    "biochem_stats_fields": [
+        "COMPOUND_ID",
+        "CRO",
+        "ASSAY_TYPE",
+        "TARGET",
+        "VARIANT",
+        "COFACTORS",
+        "ATP_CONC_UM",
+        "GEOMEAN",
+        "MINUS_3STDEV",
+        "PLUS_3STDEV",
+        "MINUS_3VAR",
+        "PLUS_3VAR",
+        "N_OF_M",
+        "STDEV",
+    ],
+    "biochem_all_fields": [
+        "PID",
+        "CREATED_DATE",
+        "CRO",
+        "ASSAY_TYPE",
+        "COMPOUND_ID",
+        "EXPERIMENT_ID",
+        "BATCH_ID",
+        "TARGET",
+        "VARIANT",
+        "COFACTORS",
+        "ATP_CONC_UM",
+        "PLOT",
+        "IC50_NM",
+        "FLAG",
+        "COMMENT_TEXT",
+        "USER_NAME",
+        "CHANGE_DATE",
+        "GEOMEAN",
+    ],
+}
 
 sql_cmds = {
-    'GEOMEAN_CELL_STATS':
-    """
+    "GEOMEAN_CELL_STATS": """
     SELECT
         max(t0.compound_id) AS COMPOUND_ID,
         max(t0.cro) AS CRO,
@@ -240,11 +248,10 @@ sql_cmds = {
         t0.cell_incubation_hr,
         t0.pct_serum
     """,
-
-    'GEOMEAN_CELL_ALL':
-    """
+    "GEOMEAN_CELL_ALL": """
     SELECT
         t3.PID,
+        t3.CREATED_DATE,
         t3.CRO,
         t3.ASSAY_TYPE,
         t3.COMPOUND_ID,
@@ -281,6 +288,7 @@ sql_cmds = {
          t1.BATCH_ID,
          t1.CELL_LINE,
          t1.VARIANT,
+         t1.CREATED_DATE,
          t1.PCT_SERUM,
          t1.WASHOUT,
          t1.PASSAGE_NUMBER,
@@ -297,9 +305,33 @@ sql_cmds = {
     INNER JOIN DS3_USERDATA.CELLULAR_IC50_FLAGS t2
     ON t1.pid = t2.pid) t3
     """,
-
-    'GEOMEAN_BIO_STATS':
-    """
+    "MSR_DATA": """
+        select COMPOUND_ID, CREATED_DATE, ROW_COUNT, CNT, IC50_NM, SUM(IC50_LOG10 * case when row_count =1 then 1 else -1 end) OVER (PARTITION BY COMPOUND_ID) DIFF_IC50
+        FROM (
+        SELECT COMPOUND_ID, CREATED_DATE, IC50_NM, ROW_COUNT, CNT, LOG(10, IC50) IC50_LOG10 FROM (
+            select t.* from (
+            select t1.PID, t1.COMPOUND_ID, t1.created_date, t2.ic50_nm, t2.ic50,
+                row_number () over (
+                 partition by t1.compound_id
+                 order by t1.created_date desc
+               ) row_count,
+        count(*) over (PARTITION BY t1.compound_id) cnt
+        from table(most_recent_ft_nbrs2('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{dsname}')) t1
+        INNER JOIN (select PID, IC50_NM, IC50 from ds3_userdata.{dsname} WHERE VALIDATED != 'INVALIDATED') t2 
+        ON t1.PID = t2.PID
+        WHERE t2.IC50_NM < 10000
+        ORDER BY
+            t1.compound_id,
+            t1.created_date DESC
+        ) t
+        WHERE t.cnt >1
+        AND t.row_count <=2
+        FETCH NEXT {n_limit} *2 ROWS ONLY
+            )
+        )
+        ORDER BY COMPOUND_ID
+        """,
+    "GEOMEAN_BIO_STATS": """
     SELECT
         max(t0.compound_id) AS COMPOUND_ID,
         max(t0.cro) AS CRO,
@@ -460,10 +492,9 @@ sql_cmds = {
         t0.cofactors,
         t0.atp_conc_um
     """,
-
-    'GEOMEAN_BIO_ALL':
-        """SELECT
+    "GEOMEAN_BIO_ALL": """SELECT
                 t3.PID,
+                t3.CREATED_DATE,
                 t3.CRO,
                 t3.ASSAY_TYPE,
                 t3.COMPOUND_ID,
@@ -498,6 +529,7 @@ sql_cmds = {
                      t1.BATCH_ID,
                      t1.TARGET,
                      t1.VARIANT,
+                     t1.CREATED_DATE,
                      t1.COFACTORS,
                      t1.ATP_CONC_UM,
                      t1.MODIFIER,
@@ -512,5 +544,5 @@ sql_cmds = {
                FROM DS3_USERDATA.SU_BIOCHEM_DRC t1
                INNER JOIN DS3_USERDATA.BIOCHEM_IC50_FLAGS t2
                ON t1.pid = t2.pid) t3
-            """
+            """,
 }
