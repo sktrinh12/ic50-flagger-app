@@ -26,7 +26,7 @@ interface TableDataType {
   FLAG: number
 }
 
-export default function DisplayTable({ axiosConfig }) {
+export default function DisplayTable() {
   const { REACT_APP_BACKEND_URL } = process.env
   const [tableData, setTableData] = useState([
     {
@@ -38,8 +38,8 @@ export default function DisplayTable({ axiosConfig }) {
       FLAG: null,
     },
   ])
-  const [plotData, setPlotData] = useState([])
-  const [plotDataTrigger, setPlotDataTrigger] = useState(false)
+  const [msrData, setMsrData] = useState([])
+  const [msrDataTrigger, setMsrDataTrigger] = useState(false)
   const navigate = useNavigate()
 
   // for comment and username references
@@ -65,6 +65,15 @@ export default function DisplayTable({ axiosConfig }) {
   const rootURL = `${REACT_APP_BACKEND_URL}/v1/fetch-data?compound_id=`
   const [open, setOpen] = useState(false)
 
+  const axiosConfig = {
+    withCredentials: false,
+    headers: {
+      'Content-Type':
+        'application/x-www-form-urlencoded;charset=UTF-8;application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,PUT,POST',
+    },
+  }
   let dtype = searchParams.get('type') ?? ''
   let stype = searchParams.get('sql_type') ?? ''
   let cro = searchParams.get('cro') ?? ''
@@ -133,8 +142,8 @@ export default function DisplayTable({ axiosConfig }) {
       .then(async (res) => {
         const json = res.data
         if (res.status === 200) {
-          setPlotData(json)
-          console.log(plotData)
+          setMsrData(json)
+          console.log(msrData)
         }
       })
       .catch((err) => {
@@ -184,9 +193,9 @@ export default function DisplayTable({ axiosConfig }) {
 
   useEffect(() => {
     fetchPlotData()
-    setPlotDataTrigger(false)
+    setMsrDataTrigger(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plotDataTrigger])
+  }, [msrDataTrigger])
 
   // change only affected rows and values
   const setMrowsData = (postDataRows) => {
@@ -211,9 +220,9 @@ export default function DisplayTable({ axiosConfig }) {
   }
 
   const handleNavToPlot = () => {
-    setPlotDataTrigger(true)
-    // console.log(plotData)
-    navigate('/plot', { state: { tableData: tableData, plotData: plotData } })
+    setMsrDataTrigger(true)
+    // console.log(msrData)
+    navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
   }
 
   const handleFilterIconClick = () => {
