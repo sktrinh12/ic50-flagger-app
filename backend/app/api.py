@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
 from .db import generic_oracle_query, generate_sql_stmt
 from fastapi.middleware.cors import CORSMiddleware
-from .schemas import GetDataBaseSchema, GetDataFineSchema
+from .schemas import GetDataSchema
 from fastapi import Query
 from typing import List
 from statistics import stdev
@@ -36,7 +36,7 @@ def read_root():
 # fetch table data endpoint
 @app.get("/v1/fetch-data", tags=["get-data"])
 async def get_data(
-    mdata: GetDataFineSchema = Depends(), pids: List[str] = Query(default=[])
+    mdata: GetDataSchema = Depends(), pids: List[str] = Query(default=[])
 ) -> Response:
     payload = {}
     if mdata.compound_id:
