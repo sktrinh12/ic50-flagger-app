@@ -12,7 +12,7 @@ ReactDOM.createRoot(document.querySelector('#root')).render(
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='get-data' element={<DisplayTable />} />
-        <Route path='plot' element={<MSRPlot plotData={[]} />} />
+        <Route path='plot' element={<MSRPlot />} />
         <Route path='*' element={<NotFound />} />
       </Routes>
     </BrowserRouter>
