@@ -1,8 +1,12 @@
 import * as React from 'react'
 import { Toolbar, InputAdornment, Drawer } from '@mui/material'
 import Input from './controls/Control'
-import MSRButton from './MSRButton'
+// import MSRButton from './MSRButton'
 import SearchIcon from '@mui/icons-material/Search'
+import InsertChartIcon from '@mui/icons-material/InsertChart'
+import Divider from '@mui/material/Divider'
+import { Link } from 'react-router-dom'
+import IconButton from '@mui/joy/IconButton'
 
 const styles = {
   position: 'relative',
@@ -26,7 +30,14 @@ const inputStyles = {
   padding: '10px',
 }
 
-const FilterTab = ({ dtype, open, handleSearchFilter, handleNavToPlot }) => {
+const FilterTab = ({
+  dtype,
+  open,
+  handleSearchFilter,
+  handleNavToPlot,
+  nLimit,
+  handleNlimitChange,
+}) => {
   return (
     <Drawer open={open} sx={styles} variant='persistent' anchor='right'>
       {/cellular_all|cellular_stats/.test(dtype) && (
@@ -154,7 +165,29 @@ const FilterTab = ({ dtype, open, handleSearchFilter, handleNavToPlot }) => {
         </Toolbar>
       )}
       {/_all|_agg/.test(dtype) && (
-        <MSRButton handleNavToPlot={handleNavToPlot} />
+        <>
+          <Divider />
+          <Toolbar style={inputStyles}>
+            <Input
+              label='N most recent MSR calc'
+              className={'width: 25%'}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <Link to='/plot' target='_blank'>
+                      <IconButton onClick={handleNavToPlot}>
+                        <InsertChartIcon />
+                      </IconButton>
+                    </Link>
+                  </InputAdornment>
+                ),
+              }}
+              onChange={handleNlimitChange}
+              value={nLimit}
+            />
+          </Toolbar>
+          <Divider />
+        </>
       )}
     </Drawer>
   )
