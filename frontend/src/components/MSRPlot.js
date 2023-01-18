@@ -7,7 +7,7 @@ const Plot = createPlotlyComponent(Plotly)
 const MSRPlot = () => {
   let tdata = []
   const location = useLocation()
-  const { tableData, plotData } = location.state ?? {}
+  const { tableData, msrData } = location.state ?? {}
 
   let layout = {
     title: 'MSR plot',
@@ -21,18 +21,16 @@ const MSRPlot = () => {
     },
   }
 
-  if (plotData && tableData) {
-    console.log(plotData)
-    console.log(tableData)
+  if (msrData && tableData) {
     const xDate = []
     const yIC50 = []
     const text = []
-    const msr = plotData.pop()
+    const msr = msrData.pop()
     for (let i = 0; i < tableData.length; i++) {
       xDate.push(tableData[i]['CREATED_DATE'])
       yIC50.push(tableData[i]['IC50_NM'])
       text.push(
-        `cmpd_id: ${tableData[i]['COMPOUND_ID']}<br> exp_id: ${tableData[i]['EXPERIMENT_ID']}`
+        `cmpd_id: ${tableData[i]['COMPOUND_ID']}<br>exp_id: ${tableData[i]['EXPERIMENT_ID']}`
       )
     }
     const gmean = tableData[0]['GEOMEAN']
