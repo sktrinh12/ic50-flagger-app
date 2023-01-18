@@ -4,7 +4,7 @@ import EditableRow from './EditableRow'
 import EnchancedTableHead from './EnhancedTableHead'
 import * as React from 'react'
 import axios from 'axios'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import ReactLoading from 'react-loading'
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
@@ -40,7 +40,7 @@ export default function DisplayTable() {
   ])
   const [msrData, setMsrData] = useState([])
   const [msrDataTrigger, setMsrDataTrigger] = useState(false)
-  const navigate = useNavigate()
+  const [nLimit, setNlimit] = useState(20)
 
   // for comment and username references
   const commentRefs = useRef([])
@@ -135,7 +135,7 @@ export default function DisplayTable() {
   const fetchPlotData = async () => {
     const url = `${newURL
       .replace('3000', '8000')
-      .replace(/type=\w+&/, 'type=msr_data&')}`
+      .replace(/type=\w+&/, 'type=msr_data&')}&n_limit=${nLimit}`
     console.log(url)
     await axios
       .get(url, axiosConfig)
@@ -194,6 +194,21 @@ export default function DisplayTable() {
   useEffect(() => {
     fetchPlotData()
     setMsrDataTrigger(false)
+
+    if (window.localStorage.getItem('GEOMEAN_FLAGGER_TABLE_DATA')) {
+      window.localStorage.removeItem('GEOMEAN_FLAGGER_TABLE_DATA')
+    }
+    window.localStorage.setItem(
+      'GEOMEAN_FLAGGER_TABLE_DATA',
+      JSON.stringify(tableData)
+    )
+    if (window.localStorage.getItem('GEOMEAN_FLAGGER_MSR_DATA')) {
+      window.localStorage.removeItem('GEOMEAN_FLAGGER_MSR_DATA')
+    }
+    window.localStorage.setItem(
+      'GEOMEAN_FLAGGER_MSR_DATA',
+      JSON.stringify(msrData)
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [msrDataTrigger])
 
@@ -219,10 +234,15 @@ export default function DisplayTable() {
     setColumnLoading([])
   }
 
+  const handleNlimitChange = (e) => {
+    setNlimit(e.target.value)
+    console.log(nLimit)
+  }
+
   const handleNavToPlot = () => {
     setMsrDataTrigger(true)
     // console.log(msrData)
-    navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
+    // navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
   }
 
   const handleFilterIconClick = () => {
@@ -402,6 +422,8 @@ export default function DisplayTable() {
                   open={open}
                   handleSearchFilter={handleSearchFilter}
                   handleNavToPlot={handleNavToPlot}
+                  handleNlimitChange={handleNlimitChange}
+                  nLimit={nLimit}
                 />
                 <Table stickyHeader aria-label='sticky table'>
                   <EnchancedTableHead
