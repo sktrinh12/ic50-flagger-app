@@ -5,28 +5,21 @@ from typing import Optional
 
 
 class GetDataSchema(BaseModel):
-    compound_id: str
     type: str
     sql_type: str
-    get_mnum_rows: str
     cro: Optional[str] = None
     assay: Optional[str] = None
+    n_limit: Optional[int] = 20
+    compound_id: Optional[str]
+    get_mnum_rows: Optional[str] = "false"
     variant: Optional[str] = None
+    washout: Optional[str] = None
+    passage_nbr: Optional[str] = None
     # BIOCHEM
-    atp_conc_um: Optional[int] = 0
+    atp_conc_um: Optional[float] = None
     target: Optional[str] = None
     cofactors: Optional[str] = None
-    modifier: Optional[str] = None
     # CELLULAR
     cell_line: Optional[str] = None
     pct_serum: Optional[int] = None
-    washout: Optional[str] = None
-    passage_nbr: Optional[str] = None
-    cell_incu_hr: Optional[int] = 0
-
-
-# class PostDataResponseSchema(BaseModel):
-#     FLAG: int
-#     PID: str
-#     BATCH_ID: str
-#     COMMENT_TEXT: str
+    cell_incu_hr: Optional[int] = None
