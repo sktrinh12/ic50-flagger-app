@@ -23,7 +23,6 @@ def generate_sql_stmt(payload):
                 sql_stmt += f"WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
                 if payload["GET_M_NUM_ROWS"]:
                     sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
-                      AND t3.MODIFIER {'IS NULL' if payload["MODIFIER"].upper() == 'NULL' or payload["MODIFIER"] is None else f"= '{payload['MODIFIER']}'"}
                       AND t3.ATP_CONC_UM {'IS NULL' if bool(re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE)) else f"= {payload['ATP_CONC_UM']}"}
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                       AND t3.TARGET = '{payload["TARGET"]}'
@@ -47,7 +46,7 @@ def generate_sql_stmt(payload):
                   AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                   AND t3.COFACTORS {'IS NULL' if bool(re.search('null',
                                                       payload["COFACTORS"], re.IGNORECASE)) or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
-                  AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
+                  AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= '{payload['VARIANT']}'"}
                   """
 
         elif payload["TYPE"] == "BIOCHEM_STATS":
@@ -70,9 +69,30 @@ def generate_sql_stmt(payload):
                       AND t3.CELL_LINE {'IS NULL' if payload["CELL_LINE"] == 'NULL' or payload["CELL_LINE"] is None else f"= '{payload['CELL_LINE']}'"}
                       AND t3.PCT_SERUM = {payload["PCT_SERUM"]}
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
-                      AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= '{payload['CELL_INCUBATION_HR']}'"}
-                      AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= {payload['VARIANT']}"}
+                      AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= {payload['CELL_INCUBATION_HR']}"}
+                      AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= '{payload['VARIANT']}'"}
                       """
+        elif payload["TYPE"] == "MSR_DATA":
+            if "ATP_CONC_UM" in payload:
+                param1 = f"""target = ''{payload["TARGET"]}''"""
+                param2 = f"""atp_conc_um = {payload["ATP_CONC_UM"]}"""
+                param3 = f"""cofactors {'is null' if bool(re.search('null', payload["COFACTORS"], re.IGNORECASE))  else f"= '{payload[ 'COFACTORS'] }'" }"""
+                dsname = "su_biochem_drc"
+            else:
+                param1 = f"""cell_line = ''{payload["CELL_LINE"]}''"""
+                param2 = f"""cell_incubation_hr = {payload["CELL_INCUBATION_HR"]}"""
+                param3 = f"""pct_serum = {payload["PCT_SERUM"]}"""
+                dsname = "su_cellular_growth_drc"
+
+            sql_stmt = sql_cmds[payload["TYPE"]].format(
+                dsname=dsname,
+                cro=payload["CRO"],
+                assay_type=payload["ASSAY_TYPE"],
+                param1=param1,
+                param2=param2,
+                param3=param3,
+                n_limit=payload["N_LIMIT"],
+            )
 
     elif payload["SQL_TYPE"].upper() == "UPDATE":
         sql_stmt = "UPDATE DS3_USERDATA."
@@ -150,4 +170,4 @@ def generic_oracle_query(sql_stmt, payload):
                     result = cursor.fetchone()
                     return result
     except Exception as e:
-        raise Exception(f"ERROR {e}")
+        print(f"ERROR {e}")
