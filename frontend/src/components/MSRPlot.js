@@ -1,14 +1,17 @@
 import Plotly from 'plotly-mini'
 import createPlotlyComponent from 'react-plotly.js/factory'
-import { useLocation } from 'react-router-dom'
+// import { useLocation } from 'react-router-dom'
 
 const Plot = createPlotlyComponent(Plotly)
 
 const MSRPlot = () => {
   let tdata = []
-  const location = useLocation()
-  const { tableData, msrData } = location.state ?? {}
-
+  // const location = useLocation()
+  // const { tableData, msrData } = location.state ?? {}
+  const tableData =
+    JSON.parse(window.localStorage.getItem('GEOMEAN_FLAGGER_TABLE_DATA')) ?? []
+  const msrData =
+    JSON.parse(window.localStorage.getItem('GEOMEAN_FLAGGER_MSR_DATA')) ?? []
   let layout = {
     title: 'MSR plot',
     xaxis: {
@@ -21,7 +24,11 @@ const MSRPlot = () => {
     },
   }
 
-  if (msrData && tableData) {
+  // console.log('msrData')
+  // console.log(msrData)
+  // console.log('tableData')
+  // console.log(tableData)
+  if (msrData.length && tableData.length) {
     const xDate = []
     const yIC50 = []
     const text = []
