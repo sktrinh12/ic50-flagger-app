@@ -43,9 +43,8 @@ field_names_dct = {
         "COMPOUND_ID",
         "CREATED_DATE",
         "ROW_COUNT",
-        "CNT",
-        "IC50_NM",
         "DIFF_IC50",
+        "AVG_IC50",
     ],
     "biochem_stats_fields": [
         "COMPOUND_ID",
@@ -306,7 +305,10 @@ sql_cmds = {
     ON t1.pid = t2.pid) t3
     """,
     "MSR_DATA": """
-        select COMPOUND_ID, CREATED_DATE, ROW_COUNT, CNT, IC50_NM, SUM(IC50_LOG10 * case when row_count =1 then 1 else -1 end) OVER (PARTITION BY COMPOUND_ID) DIFF_IC50
+        select * from (
+        select COMPOUND_ID, CREATED_DATE, ROW_COUNT,
+        SUM(IC50_LOG10 * case when row_count =1 then 1 else -1 end) OVER (PARTITION BY COMPOUND_ID) DIFF_IC50,
+        (SUM(IC50_LOG10) OVER (PARTITION BY COMPOUND_ID))/2 AVG_IC50
         FROM (
         SELECT COMPOUND_ID, CREATED_DATE, IC50_NM, ROW_COUNT, CNT, LOG(10, IC50) IC50_LOG10 FROM (
             select t.* from (
@@ -316,20 +318,18 @@ sql_cmds = {
                  order by t1.created_date desc
                ) row_count,
         count(*) over (PARTITION BY t1.compound_id) cnt
-        from table(most_recent_ft_nbrs2('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{dsname}')) t1
+        from table(most_recent_ft_nbrs('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{variant}', '{dsname}')) t1
         INNER JOIN (select PID, IC50_NM, IC50 from ds3_userdata.{dsname} WHERE VALIDATED != 'INVALIDATED') t2 
         ON t1.PID = t2.PID
-        WHERE t2.IC50_NM < 10000
-        ORDER BY
-            t1.compound_id,
-            t1.created_date DESC
         ) t
         WHERE t.cnt >1
         AND t.row_count <=2
-        FETCH NEXT {n_limit} *2 ROWS ONLY
             )
         )
-        ORDER BY COMPOUND_ID
+        )
+        WHERE ROW_COUNT = 1
+        ORDER BY CREATED_DATE DESC
+        FETCH NEXT {n_limit} ROWS ONLY
         """,
     "GEOMEAN_BIO_STATS": """
     SELECT

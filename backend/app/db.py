@@ -83,6 +83,12 @@ def generate_sql_stmt(payload):
                 param2 = f"""cell_incubation_hr = {payload["CELL_INCUBATION_HR"]}"""
                 param3 = f"""pct_serum = {payload["PCT_SERUM"]}"""
                 dsname = "su_cellular_growth_drc"
+            variant = (
+                "variant is null"
+                if bool(re.search("null", payload["VARIANT"], re.IGNORECASE))
+                or not payload["VARIANT"]
+                else f"variant = ''{payload['VARIANT']}''"
+            )
 
             sql_stmt = sql_cmds[payload["TYPE"]].format(
                 dsname=dsname,
@@ -91,6 +97,7 @@ def generate_sql_stmt(payload):
                 param1=param1,
                 param2=param2,
                 param3=param3,
+                variant=variant,
                 n_limit=payload["N_LIMIT"],
             )
 

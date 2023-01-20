@@ -16,7 +16,7 @@ class GetDataSchema(BaseModel):
     washout: Optional[str] = None
     passage_nbr: Optional[str] = None
     # BIOCHEM
-    atp_conc_um: Optional[float] = None
+    atp_conc_um: Optional[str] = None
     target: Optional[str] = None
     cofactors: Optional[str] = None
     # CELLULAR
