@@ -21,9 +21,9 @@ def generate_sql_stmt(payload):
                 sql_stmt += f""" WHERE t3.PID IN ({','.join(["'"+p+"'" for p in payload["PIDS"]])})"""
             else:
                 sql_stmt += f"WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
-                if payload["GET_M_NUM_ROWS"]:
+                if payload["GET_MNUM_ROWS"]:
                     sql_stmt += f""" AND t3.CRO = '{payload["CRO"]}'
-                      AND t3.ATP_CONC_UM {'IS NULL' if bool(re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE)) else f"= {payload['ATP_CONC_UM']}"}
+                      AND t3.ATP_CONC_UM {'IS NULL' if re.search('null', payload["ATP_CONC_UM"], re.IGNORECASE) else f"= {payload['ATP_CONC_UM']}"}
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
                       AND t3.TARGET = '{payload["TARGET"]}'
                       AND t3.VARIANT {'IS NULL' if payload["VARIANT"].upper() == 'NULL' or payload["VARIANT"] is None else f"= '{payload['VARIANT']}'"}
@@ -38,14 +38,14 @@ def generate_sql_stmt(payload):
             else:
                 sql_stmt += f" WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
 
-                if payload["GET_M_NUM_ROWS"] or payload["TYPE"] == "BIOCHEM_AGG":
+                if payload["GET_MNUM_ROWS"] or payload["TYPE"] == "BIOCHEM_AGG":
                     sql_stmt += f"""
                   AND t3.CRO = '{payload["CRO"]}'
                   AND t3.TARGET {'IS NULL' if payload["TARGET"] == 'NULL' or payload["TARGET"] is None else f"= '{payload['TARGET']}'"}
                   AND t3.ATP_CONC_UM = {payload["ATP_CONC_UM"]}
                   AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
-                  AND t3.COFACTORS {'IS NULL' if bool(re.search('null',
-                                                      payload["COFACTORS"], re.IGNORECASE)) or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
+                  AND t3.COFACTORS {'IS NULL' if re.search('null',
+                                                      payload["COFACTORS"], re.IGNORECASE) or payload["COFACTORS"] is None else f"= '{payload['COFACTORS']}'"}
                   AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= '{payload['VARIANT']}'"}
                   """
 
@@ -63,22 +63,25 @@ def generate_sql_stmt(payload):
                 else:
                     sql_stmt += f" WHERE t3.COMPOUND_ID = '{payload['COMPOUND_ID']}'"
 
-                    if payload["GET_M_NUM_ROWS"] or payload["TYPE"] == "CELLULAR_AGG":
+                    if payload["GET_MNUM_ROWS"] or payload["TYPE"] == "CELLULAR_AGG":
                         sql_stmt += f"""
                       AND t3.CRO = '{payload["CRO"]}'
                       AND t3.CELL_LINE {'IS NULL' if payload["CELL_LINE"] == 'NULL' or payload["CELL_LINE"] is None else f"= '{payload['CELL_LINE']}'"}
                       AND t3.PCT_SERUM = {payload["PCT_SERUM"]}
                       AND t3.ASSAY_TYPE = '{payload["ASSAY_TYPE"]}'
-                      AND t3.CELL_INCUBATION_HR {'IS NULL' if payload["CELL_INCUBATION_HR"] == 'NULL' or payload["CELL_INCUBATION_HR"] is None else f"= {payload['CELL_INCUBATION_HR']}"}
-                      AND t3.VARIANT {'IS NULL' if bool(re.search('null', payload["VARIANT"], re.IGNORECASE)) else f"= '{payload['VARIANT']}'"}
+                      AND t3.CELL_INCUBATION_HR {'IS NULL' if
+                           re.search('null', str(payload["CELL_INCUBATION_HR"]),
+                                re.IGNORECASE) or payload["CELL_INCUBATION_HR"] is None else f"= {payload['CELL_INCUBATION_HR']}"}
+                      AND t3.VARIANT {'IS NULL' if re.search('null', payload["VARIANT"], re.IGNORECASE) else f"= '{payload['VARIANT']}'"}
                       """
         elif payload["TYPE"] == "MSR_DATA":
-            if "ATP_CONC_UM" in payload:
+            if payload["ATP_CONC_UM"]:
                 param1 = payload["TARGET"]
                 param2 = payload["ATP_CONC_UM"]
                 param3 = (
                     "-"
-                    if bool(re.search("null", payload["COFACTORS"], re.IGNORECASE))
+                    if re.search("null", payload["COFACTORS"], re.IGNORECASE)
+                    or payload["COFACTORS"] is None
                     else payload["COFACTORS"]
                 )
                 dsname = "su_biochem_drc"
@@ -89,7 +92,7 @@ def generate_sql_stmt(payload):
                 dsname = "su_cellular_growth_drc"
             variant = (
                 "-"
-                if bool(re.search("null", payload["VARIANT"], re.IGNORECASE))
+                if re.search("null", payload["VARIANT"], re.IGNORECASE)
                 or not payload["VARIANT"]
                 else payload["VARIANT"]
             )
