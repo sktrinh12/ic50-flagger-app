@@ -1,0 +1,11 @@
+--CELL
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&get_mnum_rows=false&cro=Pharmaron&assay_type=CyQuant&variant=null&cell_line=Kuramochi&pct_serum=10&cell_incubation_hr=144&target=null&cofactors=null&atp_conc_um=
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Pharmaron&cell_line=WM3629&pct_serum=2&cell_incubation_hr=18&assay_type=pRb%20807%20HTRF&variant=-
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Pharmaron&cell_line=Ba/F3&pct_serum=10&cell_incubation_hr=72&assay_type=CellTiter-Glo&variant=TPR-MET-wt
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Carna Biosciences&cell_line=HEK-293&pct_serum=1&cell_incubation_hr=2&assay_type=nanoBRET&variant=CDK2-CCNE1-Nluc
+--BIOCHEM
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Pharmaron&target=CDK13&atp_conc_um=5&cofactors=CCNK&assay_type=ADP-GLO&variant=null
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Pharmaron&target=MET&atp_conc_um=100&cofactors=null&assay_type=Caliper&variant=wt
+http://localhost:3000/get-data?compound_id=FT008817&type=msr_data&sql_type=get&cro=Pharmaron&target=CDK9&atp_conc_um=100&cofactors=CCNT1&assay_type=Caliper&variant=-
+
+
