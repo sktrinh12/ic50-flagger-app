@@ -37,49 +37,29 @@ def read_root():
 async def get_data(
     mdata: GetDataSchema = Depends(), pids: List[str] = Query(default=[])
 ) -> Response:
-    payload = {}
     if mdata.compound_id:
         if not mdata.compound_id.startswith("FT") and len(mdata.compound_id) != 8:
             raise HTTPException(
                 status_code=404, detail=f"{mdata.compound_id} is invalid"
             )
-        payload["COMPOUND_ID"] = mdata.compound_id
+        # payload["COMPOUND_ID"] = mdata.compound_id
+    payload = {k.upper(): v for k, v in mdata.dict().items()}
     payload["TYPE"] = mdata.type.upper()
     payload["SQL_TYPE"] = mdata.sql_type.upper()
     payload["PIDS"] = pids
-    payload["GET_M_NUM_ROWS"] = eval(mdata.get_mnum_rows.title())
+    payload["GET_MNUM_ROWS"] = eval(mdata.get_mnum_rows.title())
     payload["N_LIMIT"] = mdata.n_limit
-    # print(mdata)
     if pids:
         print(f"PIDS: {pids}")
-    if mdata.cro:
-        payload["CRO"] = mdata.cro
-    if mdata.target:
-        payload["TARGET"] = mdata.target
-    if mdata.variant:
-        payload["VARIANT"] = mdata.variant
-    if mdata.cofactors:
-        payload["COFACTORS"] = mdata.cofactors
-    if mdata.assay:
-        payload["ASSAY_TYPE"] = mdata.assay
-    if mdata.atp_conc_um:
-        payload["ATP_CONC_UM"] = mdata.atp_conc_um
-    # CELLULAR
-    if mdata.pct_serum:
-        payload["PCT_SERUM"] = mdata.pct_serum
-    if mdata.cell_line:
-        payload["CELL_LINE"] = mdata.cell_line
     if mdata.washout:
         payload["WASHOUT"] = mdata.washout.upper()
-    if mdata.passage_nbr:
-        payload["PASSAGE_NUMBER"] = mdata.passage_nbr
-    if mdata.cell_incu_hr:
-        payload["CELL_INCUBATION_HR"] = int(mdata.cell_incu_hr)
+    if mdata.cell_incubation_hr:
+        payload["CELL_INCUBATION_HR"] = int(mdata.cell_incubation_hr)
     # print(mdata)
-    # print(payload)
+    print(payload)
     sql_stmt, return_payload = generate_sql_stmt(payload)
-    print(return_payload)
-    print("-" * 35)
+    # print(return_payload)
+    # print("-" * 35)
     results = generic_oracle_query(sql_stmt, return_payload)
     if mdata.type == "msr_data":
         stats = get_msr_stats(results, payload["N_LIMIT"])
