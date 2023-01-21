@@ -8,11 +8,11 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 
 # install app dependencies
-COPY package*.json ./
-RUN npm install
+COPY /geomean-ic50-flagger/frontend/package*.json ./
+RUN npm install 
 
 # add app & build
-COPY . ./
+COPY /geomean-ic50-flagger/frontend ./
 RUN npm run build
 
 FROM nginx:alpine
