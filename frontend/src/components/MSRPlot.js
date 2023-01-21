@@ -1,10 +1,16 @@
 import Plotly from 'plotly-mini'
 import createPlotlyComponent from 'react-plotly.js/factory'
 import NotFound from './NotFound'
+import NumberInput from './NumberInput'
 
 const Plot = createPlotlyComponent(Plotly)
 
-const MSRPlot = ({ msrData }) => {
+const MSRPlot = ({
+  msrData,
+  nLimit,
+  handleChangeNLimit,
+  handleNLimitButtonClick,
+}) => {
   if (msrData.data.length) {
     let tdata = []
     const green = 'rgb(52, 235, 61)'
@@ -156,7 +162,16 @@ const MSRPlot = ({ msrData }) => {
         showarrow: false,
       },
     ]
-    return <Plot data={tdata} layout={layout} config={{ displaylogo: false }} />
+    return (
+      <>
+        <Plot data={tdata} layout={layout} config={{ displaylogo: false }} />
+        <NumberInput
+          nLimit={nLimit}
+          handleChangeNLimit={handleChangeNLimit}
+          handleNLimitButtonClick={handleNLimitButtonClick}
+        />
+      </>
+    )
   } else {
     return <NotFound />
   }
