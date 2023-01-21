@@ -4,8 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .schemas import GetDataSchema
 from fastapi import Query
 from typing import List
-from statistics import stdev
-from json import load
+from .functions import get_msr_stats
 
 
 app = FastAPI()
@@ -83,15 +82,8 @@ async def get_data(
     print("-" * 35)
     results = generic_oracle_query(sql_stmt, return_payload)
     if mdata.type == "msr_data":
-        diff_ic50 = []
-        avg_ic50 = []
-        # calculate MSR manually instead of on SQL side
-        for jd in results:
-            diff_ic50.append(jd["DIFF_IC50"])
-            avg_ic50.append(jd["AVG_IC50"])
-        msr = 10 ** (2 * stdev(diff_ic50))
-        # print(f"MSR: {msr}")
-        results.append({"MSR": msr})
+        stats = get_msr_stats(results, payload["N_LIMIT"])
+        results = {"data": results, "stats": stats}
     return results
 
 
