@@ -40,9 +40,9 @@ export default function DisplayTable() {
     },
   ])
   const [msrData, setMsrData] = useState([])
-  // const [msrDataTrigger, setMsrDataTrigger] = useState(false)
-  // const [nLimit, setNlimit] = useState(20)
+  const [nLimit, setNLimit] = useState(0)
   const [msrPlotLoading, setMsrPlotLoading] = useState(false)
+  const [msrPlotTrigger, setMsrPlotTrigger] = useState(0)
 
   // for comment and username references
   const commentRefs = useRef([])
@@ -130,7 +130,10 @@ export default function DisplayTable() {
   }
 
   if (/msr/.test(dtype)) {
-    urlArray.push('&n_limit=', searchParams.get('n_limit') ?? '20')
+    urlArray.push(
+      '&n_limit=',
+      nLimit !== 0 ? nLimit : searchParams.get('n_limit') ?? 20
+    )
   }
 
   newURL = urlArray.join('')
@@ -198,7 +201,7 @@ export default function DisplayTable() {
       fetchData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [msrPlotTrigger])
 
   // change only affected rows and values
   const setMrowsData = (postDataRows) => {
@@ -222,16 +225,15 @@ export default function DisplayTable() {
     setColumnLoading([])
   }
 
-  // const handleNlimitChange = (e) => {
-  //   setNlimit(e.target.value)
-  //   console.log(nLimit)
-  // }
+  const handleNLimitButtonClick = (e) => {
+    setMsrPlotTrigger(msrPlotTrigger + 1)
+    // console.log(msrPlotTrigger)
+  }
 
-  // const handleNavToPlot = () => {
-  //   setMsrDataTrigger(true)
-  //   // console.log(msrData)
-  //   // navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
-  // }
+  const handleChangeNLimit = (event) => {
+    setNLimit(event.target.value)
+    // console.log(nLimit)
+  }
 
   const handleFilterIconClick = () => {
     setOpen(!open)
@@ -241,11 +243,6 @@ export default function DisplayTable() {
   const handleEditFormChange = (event) => {
     event.preventDefault()
     const flagValue = event.target.value
-    // console.log(`the target value: ${flagValue}`);
-    // const index = tableData.findIndex((tdata) => tdata.ID === editFlag);
-    // const newTableData = [...tableData];
-    // newTableData[index]["FLAG"] = flagValue;
-    // console.log(newTableData);
     setFlag(flagValue)
   }
 
@@ -401,7 +398,12 @@ export default function DisplayTable() {
           </div>
         </Box>
       ) : msrPlotLoading ? (
-        <MSRPlot msrData={msrData} />
+        <MSRPlot
+          msrData={msrData}
+          nLimit={nLimit !== 0 ? nLimit : 20}
+          handleChangeNLimit={handleChangeNLimit}
+          handleNLimitButtonClick={handleNLimitButtonClick}
+        />
       ) : (
         <Box sx={{ width: '100%' }}>
           <form onSubmit={handleEditFormSubmit}>
