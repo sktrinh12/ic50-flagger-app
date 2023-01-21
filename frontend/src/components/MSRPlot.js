@@ -1,57 +1,60 @@
 import Plotly from 'plotly-mini'
 import createPlotlyComponent from 'react-plotly.js/factory'
-// import { useLocation } from 'react-router-dom'
+import NotFound from './NotFound'
 
 const Plot = createPlotlyComponent(Plotly)
 
-const MSRPlot = () => {
-  let tdata = []
-  // const location = useLocation()
-  // const { tableData, msrData } = location.state ?? {}
-  const tableData =
-    JSON.parse(window.localStorage.getItem('GEOMEAN_FLAGGER_TABLE_DATA')) ?? []
-  const msrData =
-    JSON.parse(window.localStorage.getItem('GEOMEAN_FLAGGER_MSR_DATA')) ?? []
-  let layout = {
-    title: 'MSR plot',
-    xaxis: {
-      title: 'Created Date',
-      zeroline: false,
-    },
-    yaxis: {
-      title: 'IC50 nM',
-      zeroline: false,
-    },
-  }
+const MSRPlot = ({ msrData }) => {
+  if (msrData.data.length) {
+    let tdata = []
+    const green = 'rgb(52, 235, 61)'
+    const red = 'rgb(255, 0, 0)'
+    const blue = 'rgb(36, 86, 224)'
+    let layout = {
+      title: 'MSR plot',
+      xaxis: {
+        title: 'Geomean (nM)',
+        zeroline: false,
+        type: 'log',
+      },
+      yaxis: {
+        title: 'Ratios',
+        zeroline: false,
+        type: 'log',
+      },
+    }
 
-  // console.log('msrData')
-  // console.log(msrData)
-  // console.log('tableData')
-  // console.log(tableData)
-  if (msrData.length && tableData.length) {
-    const xDate = []
-    const yIC50 = []
+    // console.log('msrData')
+    // console.log(msrData)
+    const xs = []
+    const ys = []
     const text = []
-    const msr = msrData.pop()
-    for (let i = 0; i < tableData.length; i++) {
-      xDate.push(tableData[i]['CREATED_DATE'])
-      yIC50.push(tableData[i]['IC50_NM'])
+    const stats = msrData['stats']
+    const msr = stats['MSR']
+    const mr = stats['MR']
+    const min = stats['MIN']
+    const max = stats['MAX']
+    const rl = stats['RL'] // array
+    const lsa = stats['LSA'] // array
+    for (let i = 0; i < msrData['data'].length; i++) {
+      ys.push(msrData['data'][i]['DIFF_IC50'])
+      xs.push(msrData['data'][i]['AVG_IC50'])
       text.push(
-        `cmpd_id: ${tableData[i]['COMPOUND_ID']}<br>exp_id: ${tableData[i]['EXPERIMENT_ID']}`
+        `cmpd_id: ${msrData['data'][i]['COMPOUND_ID']}<br>date: ${msrData['data'][i]['CREATED_DATE']}`
       )
     }
-    const gmean = tableData[0]['GEOMEAN']
-    // console.log(msr)
-
-    const yMsrPos = Array.from(Array(xDate.length)).fill(gmean + msr['MSR'])
-    const yMsrNeg = Array.from(Array(xDate.length)).fill(gmean - msr['MSR'])
-    const yGmean = Array.from(Array(xDate.length)).fill(gmean)
+    const gmean = xs.map((e) => Math.pow(10, +e))
+    const ratios = ys.map((e) => Math.pow(10, +e))
+    // console.log('gmean')
+    // console.log(gmean)
+    // console.log('ratios')
+    // console.log(ratios)
 
     const trace1 = {
-      x: xDate,
-      y: yIC50,
+      x: gmean,
+      y: ratios,
       mode: 'markers',
-      name: 'IC50',
+      name: 'ratios',
       text: text,
       marker: {
         size: 12,
@@ -62,14 +65,13 @@ const MSRPlot = () => {
         '%{xaxis.title.text}: %{x}<br>' +
         '<extra></extra>',
     }
-
     const trace2 = {
-      x: xDate,
-      y: yMsrPos,
+      x: [min, max],
+      y: [rl[0], rl[0]],
       mode: 'lines',
-      name: 'MSR (+)',
+      name: 'RL',
       line: {
-        color: '#FF7F50',
+        color: green,
         dash: 'dashdot',
         width: 2,
       },
@@ -77,12 +79,12 @@ const MSRPlot = () => {
     }
 
     const trace3 = {
-      x: xDate,
-      y: yMsrNeg,
+      x: [min, max],
+      y: [rl[1], rl[1]],
       mode: 'lines',
-      name: 'MSR (-)',
+      showlegend: false,
       line: {
-        color: '#FF7F50',
+        color: green,
         dash: 'dashdot',
         width: 2,
       },
@@ -90,19 +92,55 @@ const MSRPlot = () => {
     }
 
     const trace4 = {
-      x: xDate,
-      y: yGmean,
+      x: [min, max],
+      y: [lsa[0], lsa[0]],
       mode: 'lines',
-      name: 'GEOMEAN',
+      name: 'LsA',
       line: {
-        color: '#6495ED',
-        dash: 'dashdot',
-        width: 4,
+        color: red,
+        dash: 'dot',
+        width: 2,
       },
       hovertemplate: '%{y}<extra></extra>',
     }
 
-    tdata = [trace1, trace2, trace3, trace4]
+    const trace5 = {
+      x: [min, max],
+      y: [lsa[1], lsa[1]],
+      mode: 'lines',
+      showlegend: false,
+      line: {
+        color: red,
+        dash: 'dot',
+        width: 2,
+      },
+      hovertemplate: '%{y}<extra></extra>',
+    }
+
+    const trace6 = {
+      x: [min, max],
+      y: [mr, mr],
+      mode: 'lines',
+      name: 'MR',
+      line: {
+        color: blue,
+        width: 2,
+      },
+      hovertemplate: '%{y}<extra></extra>',
+    }
+
+    const trace7 = {
+      x: [min, max],
+      y: [1, 1],
+      mode: 'lines',
+      name: 'Ref',
+      line: {
+        color: 'rgb(0,0,0)',
+        width: 1,
+      },
+      hovertemplate: '%{y}<extra></extra>',
+    }
+    tdata = [trace1, trace2, trace3, trace4, trace5, trace6, trace7]
 
     layout['annotations'] = [
       {
@@ -112,14 +150,14 @@ const MSRPlot = () => {
         xanchor: 'left',
         y: 0.5,
         yanchor: 'top',
-        text: `<b>MSR</b>: ${
-          Math.round((msr['MSR'] + Number.EPSILON) * 100) / 100
-        }`,
+        text: `<b>MSR</b>: ${Math.round((msr + Number.EPSILON) * 100) / 100}`,
         showarrow: false,
       },
     ]
+    return <Plot data={tdata} layout={layout} />
+  } else {
+    return <NotFound />
   }
-  return <Plot data={tdata} layout={layout} />
 }
 
 export default MSRPlot
