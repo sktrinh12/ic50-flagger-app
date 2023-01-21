@@ -82,6 +82,7 @@ const MSRPlot = ({ msrData }) => {
       x: [min, max],
       y: [rl[1], rl[1]],
       mode: 'lines',
+      name: 'RL',
       showlegend: false,
       line: {
         color: green,
@@ -108,6 +109,7 @@ const MSRPlot = ({ msrData }) => {
       x: [min, max],
       y: [lsa[1], lsa[1]],
       mode: 'lines',
+      name: 'LsA',
       showlegend: false,
       line: {
         color: red,
