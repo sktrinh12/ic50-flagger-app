@@ -63,7 +63,7 @@ const MSRPlot = ({ msrData }) => {
         '<b>%{text}</b><br><br>' +
         '%{yaxis.title.text}: %{y:.2f}<br>' +
         '%{xaxis.title.text}: %{x}<br>' +
-        '<extra></extra>',
+        '',
     }
     const trace2 = {
       x: [min, max],
@@ -75,7 +75,7 @@ const MSRPlot = ({ msrData }) => {
         dash: 'dashdot',
         width: 2,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
 
     const trace3 = {
@@ -88,7 +88,7 @@ const MSRPlot = ({ msrData }) => {
         dash: 'dashdot',
         width: 2,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
 
     const trace4 = {
@@ -101,7 +101,7 @@ const MSRPlot = ({ msrData }) => {
         dash: 'dot',
         width: 2,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
 
     const trace5 = {
@@ -114,7 +114,7 @@ const MSRPlot = ({ msrData }) => {
         dash: 'dot',
         width: 2,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
 
     const trace6 = {
@@ -126,7 +126,7 @@ const MSRPlot = ({ msrData }) => {
         color: blue,
         width: 2,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
 
     const trace7 = {
@@ -138,7 +138,7 @@ const MSRPlot = ({ msrData }) => {
         color: 'rgb(0,0,0)',
         width: 1,
       },
-      hovertemplate: '%{y}<extra></extra>',
+      hovertemplate: '%{y:.2f}',
     }
     tdata = [trace1, trace2, trace3, trace4, trace5, trace6, trace7]
 
@@ -154,7 +154,7 @@ const MSRPlot = ({ msrData }) => {
         showarrow: false,
       },
     ]
-    return <Plot data={tdata} layout={layout} />
+    return <Plot data={tdata} layout={layout} config={{ displaylogo: false }} />
   } else {
     return <NotFound />
   }
