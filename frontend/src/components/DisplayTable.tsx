@@ -15,6 +15,7 @@ import Box from '@mui/material/Box'
 import { sortedRowInformation, getComparator } from './TableSortFunctions'
 import { PurpleColour } from './Colour'
 import FilterTab from './FilterTab'
+import MSRPlot from './MSRPlot'
 
 interface TableDataType {
   ID: number
@@ -39,8 +40,9 @@ export default function DisplayTable() {
     },
   ])
   const [msrData, setMsrData] = useState([])
-  const [msrDataTrigger, setMsrDataTrigger] = useState(false)
-  const [nLimit, setNlimit] = useState(20)
+  // const [msrDataTrigger, setMsrDataTrigger] = useState(false)
+  // const [nLimit, setNlimit] = useState(20)
+  const [msrPlotLoading, setMsrPlotLoading] = useState(false)
 
   // for comment and username references
   const commentRefs = useRef([])
@@ -74,6 +76,7 @@ export default function DisplayTable() {
       'Access-Control-Allow-Methods': 'GET,PUT,POST',
     },
   }
+
   let dtype = searchParams.get('type') ?? ''
   let stype = searchParams.get('sql_type') ?? ''
   let cro = searchParams.get('cro') ?? ''
@@ -95,47 +98,46 @@ export default function DisplayTable() {
     stype,
     '&get_mnum_rows=',
     'false',
+    '&cro=',
+    cro,
+    '&assay=',
+    assay,
+    '&variant=',
+    (searchParams.get('variant') === '-'
+      ? 'null'
+      : searchParams.get('variant')) ?? '',
   ]
-
-  if (dtype.endsWith('agg')) {
+  if (cell_line) {
     urlArray.push(
-      '&cro=',
-      cro,
-      '&assay=',
-      assay,
-      '&variant=',
-      (searchParams.get('variant') === '-'
-        ? 'null'
-        : searchParams.get('variant')) ?? ''
+      '&cell_line=',
+      cell_line,
+      '&pct_serum=',
+      pct_serum,
+      '&cell_incu_hr=',
+      cell_incu_hr
     )
-    if (dtype.startsWith('cell')) {
-      urlArray.push(
-        '&cell_line=',
-        cell_line,
-        '&pct_serum=',
-        pct_serum,
-        '&cell_incu_hr=',
-        cell_incu_hr
-      )
-    } else {
-      urlArray.push(
-        '&target=',
-        target,
-        '&cofactors=',
-        cofactors,
-        '&atp_conc_um=',
-        atp_conc_um
-      )
-    }
+  }
+
+  if (target) {
+    urlArray.push(
+      '&target=',
+      target,
+      '&cofactors=',
+      cofactors,
+      '&atp_conc_um=',
+      atp_conc_um
+    )
+  }
+
+  if (/msr/.test(dtype)) {
+    urlArray.push('&n_limit=', searchParams.get('n_limit') ?? '20')
   }
 
   newURL = urlArray.join('')
 
   // plotting data
   const fetchPlotData = async () => {
-    const url = `${newURL
-      .replace('3000', '8000')
-      .replace(/type=\w+&/, 'type=msr_data&')}&n_limit=${nLimit}`
+    const url = `${newURL.replace('3000', '8000')}`
     console.log(url)
     await axios
       .get(url, axiosConfig)
@@ -143,8 +145,9 @@ export default function DisplayTable() {
         const json = res.data
         if (res.status === 200) {
           setMsrData(json)
-          console.log(msrData)
+          // console.log(msrData)
         }
+        setLoading(false)
       })
       .catch((err) => {
         console.log('AXIOS ERROR: ', err)
@@ -187,30 +190,14 @@ export default function DisplayTable() {
   }
 
   useEffect(() => {
-    fetchData()
+    if (dtype === 'msr_data') {
+      fetchPlotData()
+      setMsrPlotLoading(true)
+    } else {
+      fetchData()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  useEffect(() => {
-    fetchPlotData()
-    setMsrDataTrigger(false)
-
-    if (window.localStorage.getItem('GEOMEAN_FLAGGER_TABLE_DATA')) {
-      window.localStorage.removeItem('GEOMEAN_FLAGGER_TABLE_DATA')
-    }
-    window.localStorage.setItem(
-      'GEOMEAN_FLAGGER_TABLE_DATA',
-      JSON.stringify(tableData)
-    )
-    if (window.localStorage.getItem('GEOMEAN_FLAGGER_MSR_DATA')) {
-      window.localStorage.removeItem('GEOMEAN_FLAGGER_MSR_DATA')
-    }
-    window.localStorage.setItem(
-      'GEOMEAN_FLAGGER_MSR_DATA',
-      JSON.stringify(msrData)
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [msrDataTrigger])
 
   // change only affected rows and values
   const setMrowsData = (postDataRows) => {
@@ -234,16 +221,16 @@ export default function DisplayTable() {
     setColumnLoading([])
   }
 
-  const handleNlimitChange = (e) => {
-    setNlimit(e.target.value)
-    console.log(nLimit)
-  }
+  // const handleNlimitChange = (e) => {
+  //   setNlimit(e.target.value)
+  //   console.log(nLimit)
+  // }
 
-  const handleNavToPlot = () => {
-    setMsrDataTrigger(true)
-    // console.log(msrData)
-    // navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
-  }
+  // const handleNavToPlot = () => {
+  //   setMsrDataTrigger(true)
+  //   // console.log(msrData)
+  //   // navigate('/plot', { state: { tableData: tableData, msrData: msrData } })
+  // }
 
   const handleFilterIconClick = () => {
     setOpen(!open)
@@ -412,6 +399,8 @@ export default function DisplayTable() {
             />
           </div>
         </Box>
+      ) : msrPlotLoading ? (
+        <MSRPlot msrData={msrData} />
       ) : (
         <Box sx={{ width: '100%' }}>
           <form onSubmit={handleEditFormSubmit}>
@@ -421,9 +410,6 @@ export default function DisplayTable() {
                   dtype={dtype}
                   open={open}
                   handleSearchFilter={handleSearchFilter}
-                  handleNavToPlot={handleNavToPlot}
-                  handleNlimitChange={handleNlimitChange}
-                  nLimit={nLimit}
                 />
                 <Table stickyHeader aria-label='sticky table'>
                   <EnchancedTableHead
