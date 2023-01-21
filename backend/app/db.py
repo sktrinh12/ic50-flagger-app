@@ -74,20 +74,24 @@ def generate_sql_stmt(payload):
                       """
         elif payload["TYPE"] == "MSR_DATA":
             if "ATP_CONC_UM" in payload:
-                param1 = f"""target = ''{payload["TARGET"]}''"""
-                param2 = f"""atp_conc_um = {payload["ATP_CONC_UM"]}"""
-                param3 = f"""cofactors {'is null' if bool(re.search('null', payload["COFACTORS"], re.IGNORECASE))  else f"= '{payload[ 'COFACTORS'] }'" }"""
+                param1 = payload["TARGET"]
+                param2 = payload["ATP_CONC_UM"]
+                param3 = (
+                    "-"
+                    if bool(re.search("null", payload["COFACTORS"], re.IGNORECASE))
+                    else payload["COFACTORS"]
+                )
                 dsname = "su_biochem_drc"
             else:
-                param1 = f"""cell_line = ''{payload["CELL_LINE"]}''"""
-                param2 = f"""cell_incubation_hr = {payload["CELL_INCUBATION_HR"]}"""
-                param3 = f"""pct_serum = {payload["PCT_SERUM"]}"""
+                param1 = payload["CELL_LINE"]
+                param2 = payload["CELL_INCUBATION_HR"]
+                param3 = payload["PCT_SERUM"]
                 dsname = "su_cellular_growth_drc"
             variant = (
-                "variant is null"
+                "-"
                 if bool(re.search("null", payload["VARIANT"], re.IGNORECASE))
                 or not payload["VARIANT"]
-                else f"variant = ''{payload['VARIANT']}''"
+                else payload["VARIANT"]
             )
 
             sql_stmt = sql_cmds[payload["TYPE"]].format(
