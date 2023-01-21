@@ -80,10 +80,10 @@ export default function DisplayTable() {
   let dtype = searchParams.get('type') ?? ''
   let stype = searchParams.get('sql_type') ?? ''
   let cro = searchParams.get('cro') ?? ''
-  let assay = searchParams.get('assay') ?? ''
+  let assay_type = searchParams.get('assay_type') ?? ''
   let cell_line = searchParams.get('cell_line') ?? ''
   let pct_serum = searchParams.get('pct_serum') ?? ''
-  let cell_incu_hr = searchParams.get('cell_incu_hr') ?? ''
+  let cell_incubation_hr = searchParams.get('cell_incubation_hr') ?? ''
   let target = searchParams.get('target') ?? 'null'
   let cofactors = searchParams.get('cofactors') ?? 'null'
   let atp_conc_um = searchParams.get('atp_conc_um') ?? ''
@@ -100,8 +100,8 @@ export default function DisplayTable() {
     'false',
     '&cro=',
     cro,
-    '&assay=',
-    assay,
+    '&assay_type=',
+    assay_type,
     '&variant=',
     (searchParams.get('variant') === '-'
       ? 'null'
@@ -113,8 +113,8 @@ export default function DisplayTable() {
       cell_line,
       '&pct_serum=',
       pct_serum,
-      '&cell_incu_hr=',
-      cell_incu_hr
+      '&cell_incubation_hr=',
+      cell_incubation_hr
     )
   }
 
@@ -135,6 +135,7 @@ export default function DisplayTable() {
 
   newURL = urlArray.join('')
 
+  // console.log(newURL)
   // plotting data
   const fetchPlotData = async () => {
     const url = `${newURL.replace('3000', '8000')}`
