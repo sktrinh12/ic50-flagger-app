@@ -307,7 +307,7 @@ sql_cmds = {
     "MSR_DATA": """
         select COMPOUND_ID, CREATED_DATE, ROW_COUNT, DIFF_IC50, AVG_IC50
         FROM (
-            GET_MSR_DATA('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{variant}', '{dsname}', {n_limit}) 
+            GET_MSR_DATA2('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{variant}', '{dsname}', {n_limit}) 
         )
         """,
     "GEOMEAN_BIO_STATS": """
