@@ -1,10 +1,7 @@
-import Plotly from 'plotly-mini'
-import createPlotlyComponent from 'react-plotly.js/factory'
+import Plot from 'react-plotly.js'
 import NotFound from './NotFound'
 import NumberInput from './NumberInput'
 import DownloadCSVFile from './DownloadCSV'
-
-const Plot = createPlotlyComponent(Plotly)
 
 const MSRPlot = ({
   msrData,
