@@ -43,6 +43,8 @@ field_names_dct = {
         "COMPOUND_ID",
         "CREATED_DATE",
         "ROW_COUNT",
+        "IC50_NM_1",
+        "IC50_NM_2",
         "DIFF_IC50",
         "AVG_IC50",
     ],
@@ -305,7 +307,7 @@ sql_cmds = {
     ON t1.pid = t2.pid) t3
     """,
     "MSR_DATA": """
-        select COMPOUND_ID, CREATED_DATE, ROW_COUNT, DIFF_IC50, AVG_IC50
+        select COMPOUND_ID, CREATED_DATE, ROW_COUNT, IC50_NM_1, IC50_NM_2, DIFF_IC50, AVG_IC50
         FROM (
             GET_MSR_DATA2('{cro}', '{assay_type}', '{param1}', '{param2}', '{param3}', '{variant}', '{dsname}', {n_limit}) 
         )
