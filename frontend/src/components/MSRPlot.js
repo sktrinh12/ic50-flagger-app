@@ -2,6 +2,7 @@ import Plotly from 'plotly-mini'
 import createPlotlyComponent from 'react-plotly.js/factory'
 import NotFound from './NotFound'
 import NumberInput from './NumberInput'
+import DownloadCSVFile from './DownloadCSV'
 
 const Plot = createPlotlyComponent(Plotly)
 
@@ -10,6 +11,7 @@ const MSRPlot = ({
   nLimit,
   handleChangeNLimit,
   handleNLimitButtonClick,
+  metadata,
 }) => {
   if (msrData.data.length) {
     let tdata = []
@@ -170,6 +172,7 @@ const MSRPlot = ({
           handleChangeNLimit={handleChangeNLimit}
           handleNLimitButtonClick={handleNLimitButtonClick}
         />
+        <DownloadCSVFile msrData={msrData} metadata={metadata} />
       </>
     )
   } else {

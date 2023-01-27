@@ -87,6 +87,10 @@ export default function DisplayTable() {
   let target = searchParams.get('target') ?? 'null'
   let cofactors = searchParams.get('cofactors') ?? 'null'
   let atp_conc_um = searchParams.get('atp_conc_um') ?? ''
+  let variant =
+    (searchParams.get('variant') === '-'
+      ? 'null'
+      : searchParams.get('variant')) ?? ''
   let newURL: string
 
   let urlArray: string[] = [
@@ -103,9 +107,7 @@ export default function DisplayTable() {
     '&assay_type=',
     assay_type,
     '&variant=',
-    (searchParams.get('variant') === '-'
-      ? 'null'
-      : searchParams.get('variant')) ?? '',
+    variant,
   ]
   if (cell_line) {
     urlArray.push(
@@ -403,6 +405,18 @@ export default function DisplayTable() {
           nLimit={nLimit !== 0 ? nLimit : 20}
           handleChangeNLimit={handleChangeNLimit}
           handleNLimitButtonClick={handleNLimitButtonClick}
+          metadata={
+            cell_line
+              ? [
+                  cro,
+                  assay_type,
+                  cell_line,
+                  cell_incubation_hr,
+                  pct_serum,
+                  variant,
+                ]
+              : [cro, assay_type, target, atp_conc_um, cofactors, variant]
+          }
         />
       ) : (
         <Box sx={{ width: '100%' }}>
