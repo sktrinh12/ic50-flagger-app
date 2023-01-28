@@ -22,13 +22,14 @@ function convertToCSV(objArray) {
   return str
 }
 
-const titles = ['cro', 'assay type']
+const titles = ['CRO', 'Assay type']
 
 const DownloadCSVFile = ({ msrData, metadata }) => {
+  const dtype = Object.keys(metadata)[0]
   const data = convertToCSV(msrData.data)
   const file = new Blob(['\ufeff', data])
-  const filename = metadata.join('-') + '.csv'
-  metadata.includes('cell_line')
+  const filename = metadata[dtype].join('-') + '.csv'
+  dtype === 'cell'
     ? titles.push('Cell line', 'Cell incubation hr', '% Serum')
     : titles.push('Target', 'ATP Conc uM', 'Cofactors')
   titles.push('Variant')
@@ -43,10 +44,10 @@ const DownloadCSVFile = ({ msrData, metadata }) => {
           padding: '2px',
         }}
       >
-        {Array.from(Array(metadata.length)).map((undef, i) => {
+        {Array.from(Array(metadata[dtype].length)).map((undef, i) => {
           return (
             <p key={`metadata_${i}`}>
-              <b>{titles[i]}</b>: {metadata[i]}
+              <b>{titles[i]}</b>: {metadata[dtype][i]}
             </p>
           )
         })}
