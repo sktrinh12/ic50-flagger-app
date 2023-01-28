@@ -407,15 +407,26 @@ export default function DisplayTable() {
           handleNLimitButtonClick={handleNLimitButtonClick}
           metadata={
             cell_line
-              ? [
-                  cro,
-                  assay_type,
-                  cell_line,
-                  cell_incubation_hr,
-                  pct_serum,
-                  variant,
-                ]
-              : [cro, assay_type, target, atp_conc_um, cofactors, variant]
+              ? {
+                  cell: [
+                    cro,
+                    assay_type,
+                    cell_line,
+                    cell_incubation_hr,
+                    pct_serum,
+                    variant,
+                  ],
+                }
+              : {
+                  bio: [
+                    cro,
+                    assay_type,
+                    target,
+                    atp_conc_um,
+                    cofactors,
+                    variant,
+                  ],
+                }
           }
         />
       ) : (
