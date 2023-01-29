@@ -55,13 +55,7 @@ const ReadRow = ({
   }
 
   return (
-    <TableRow
-      hover
-      role='checkbox'
-      tabIndex={-1}
-      key={keyValue}
-      selected={columnLoading}
-    >
+    <TableRow hover tabIndex={-1} key={keyValue} selected={columnLoading}>
       {DataFields.columns.map((column, i) => {
         const value = data[column.id]
         let urlArray = [
