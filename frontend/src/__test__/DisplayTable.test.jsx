@@ -4,10 +4,22 @@ import { waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import DisplayTable from '../components/DisplayTable.tsx'
 import axios from 'axios'
-import mockData from '../__mocks__/data'
+import mockData from './mockBioData'
 
 let getSpy
+const titles = [
+  'Assay Type',
+  'Compound',
+  'Target',
+  'Variant',
+  'Cofactors',
+  'ATP Conc (uM)',
+  'Geomean nM',
+  'Stdev',
+  'n of m',
+]
 
+let promises
 describe('DisplayTable component', () => {
   beforeEach(() => {
     getSpy = jest.spyOn(axios, 'get').mockImplementation(() => {
@@ -15,41 +27,45 @@ describe('DisplayTable component', () => {
     })
   })
 
-  // afterEach(() => {
-  //   // Reset the axios.get method back to its original implementation
-  //   getSpy.mockReset()
-  //   getSpy.mockRestore()
-  // })
+  afterEach(() => {
+    // Reset the axios.get method back to its original implementation
+    getSpy.mockReset()
+    getSpy.mockRestore()
+  })
 
   // the backend fetch api url uses 'fetch-data'
   it('renders table with correct data based on query parameters', async () => {
-    const dtype = 'biochem_stats'
-    const stype = 'get'
     render(
-      <MemoryRouter
-        initialEntries={[`/get-data?type=${dtype}&sql_type=${stype}`]}
-      >
+      <MemoryRouter initialEntries={['/get-data']}>
         <DisplayTable />
       </MemoryRouter>
     )
     // console.info(window.location.href)
     expect(getSpy).toHaveBeenCalled()
 
-    await waitFor(() => {
-      const table = screen.getByRole('table')
-      expect(table).toBeInTheDocument()
-      expect(table).toHaveTextContent('CRO')
-      expect(table).toHaveTextContent('Assay Type')
-      expect(table).toHaveTextContent('Compound ID')
-    })
+    const table = await screen.findAllByRole('table')
+    expect(table[0]).toBeInTheDocument()
+    promises = titles.map((title, index) =>
+      waitFor(() => {
+        expect(table[0]).toHaveTextContent(title)
+      })
+    )
+    await Promise.all(promises)
 
-    // await waitFor(() => {
-    //   const row = screen.queryAllByRole('row')
-    //   expect(row).toHaveLength(mockData.data.length + 1)
-    //   expect(row[1]).toHaveTextContent('AXL')
-    //   expect(row[2]).toHaveTextContent('KDR')
-    //   expect(row[3]).toHaveTextContent('LCK')
-    // screen.debug(row)
-    // })
+    const rows = await screen.findAllByRole('row')
+    // screen.debug(rows[0])
+    expect(rows).toHaveLength(mockData.data.length + 1) // rows per page = 10; +1 for header
+    promises = mockData.data.map((item, index) =>
+      waitFor(() => {
+        expect(rows[index + 1]).toHaveTextContent(item.TARGET)
+      })
+    )
+    await Promise.all(promises)
+    promises = mockData.data.map((item, index) =>
+      waitFor(() => {
+        expect(rows[index + 1]).toHaveTextContent(item.GEOMEAN)
+      })
+    )
+    await Promise.all(promises)
   })
 })
