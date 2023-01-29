@@ -174,7 +174,7 @@ export default function DisplayTable() {
         const json = res.data
         if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
           console.log(`url: ${newURL}`)
-          console.log(json)
+          // console.log(json)
         }
         if (res.status === 200) {
           getMRows ? setMrowsData(json) : setTableData(json)
