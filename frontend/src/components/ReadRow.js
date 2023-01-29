@@ -132,9 +132,7 @@ const ReadRow = ({
       {data && !data.N_OF_M && (
         <TableCell
           align={'center'}
-          key={`ACTION-${keyValue}-${
-            parseInt(keyValue.split('-')[2].replace(/^\D+/g, '')) + 5000
-          }`}
+          key={`ACTION-${keyValue}-${data.COMPOUND_ID}`}
         >
           <>
             <button
