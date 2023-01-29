@@ -42,7 +42,7 @@ export default function DisplayTable() {
   const [msrData, setMsrData] = useState([])
   const [nLimit, setNLimit] = useState(0)
   const [msrPlotLoading, setMsrPlotLoading] = useState(false)
-  const [msrPlotTrigger, setMsrPlotTrigger] = useState(0)
+  // const [msrPlotTrigger, setMsrPlotTrigger] = useState(0)
 
   // for comment and username references
   const commentRefs = useRef([])
@@ -174,13 +174,13 @@ export default function DisplayTable() {
         const json = res.data
         if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
           console.log(`url: ${newURL}`)
-          // console.log(json)
+          console.log(json)
         }
         if (res.status === 200) {
           getMRows ? setMrowsData(json) : setTableData(json)
           // create dynamic refs for comments
           const tableLength = tableData.length
-          // console.log(`table length: ${tableLength}`);
+          // console.log(`table length: ${tableLength}`)
           if (commentRefs.current.length !== tableLength) {
             commentRefs.current = Array(tableLength)
               .fill()
@@ -203,7 +203,7 @@ export default function DisplayTable() {
       fetchData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [msrPlotTrigger])
+  }, [])
 
   // change only affected rows and values
   const setMrowsData = (postDataRows) => {
@@ -228,7 +228,8 @@ export default function DisplayTable() {
   }
 
   const handleNLimitButtonClick = (e) => {
-    setMsrPlotTrigger(msrPlotTrigger + 1)
+    fetchPlotData()
+    // setMsrPlotTrigger(msrPlotTrigger + 1)
     // console.log(msrPlotTrigger)
   }
 
@@ -460,7 +461,7 @@ export default function DisplayTable() {
                         <React.Fragment key={i}>
                           {editFlag === tdata.ID ? (
                             <EditableRow
-                              keyValue={`${tdata.PID}-EDIT-${i}`}
+                              keyValue={`row-edit-${i}`}
                               data={tdata}
                               handleEditFormChange={handleEditFormChange}
                               flag={flag}
@@ -469,12 +470,14 @@ export default function DisplayTable() {
                             />
                           ) : (
                             <ReadRow
-                              keyValue={`${tdata.PID}-READ-${i}`}
+                              keyValue={`row-read-${i}`}
                               data={tdata}
                               username={username}
                               types={[dtype, stype]}
                               columnLoading={
-                                columnLoading.includes(tdata.PID) ? true : false
+                                columnLoading.includes(tdata?.PID)
+                                  ? true
+                                  : false
                               }
                               handleEditClick={handleEditClick}
                             />
