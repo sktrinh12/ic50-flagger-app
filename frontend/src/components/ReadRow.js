@@ -58,6 +58,7 @@ const ReadRow = ({
     <TableRow hover tabIndex={-1} key={keyValue} selected={columnLoading}>
       {DataFields.columns.map((column, i) => {
         const value = data[column.id]
+
         let urlArray = [
           '/get-data?compound_id=',
           data.COMPOUND_ID,
