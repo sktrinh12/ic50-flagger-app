@@ -77,68 +77,21 @@ export default function DisplayTable() {
     },
   }
 
-  let dtype = searchParams.get('type') ?? ''
-  let stype = searchParams.get('sql_type') ?? ''
-  let cro = searchParams.get('cro') ?? ''
-  let assay_type = searchParams.get('assay_type') ?? ''
-  let cell_line = searchParams.get('cell_line') ?? ''
-  let pct_serum = searchParams.get('pct_serum') ?? ''
-  let cell_incubation_hr = searchParams.get('cell_incubation_hr') ?? ''
-  let target = searchParams.get('target') ?? 'null'
-  let cofactors = searchParams.get('cofactors') ?? 'null'
-  let atp_conc_um = searchParams.get('atp_conc_um') ?? ''
+  const urlParams = new URLSearchParams(window.location.search)
+  const urlParamsObj = Object.fromEntries(urlParams)
+  // console.log(urlParamsObj)
+  // console.log(urlParams.toString())
+  let newURL = `${rootURL.replace('compound_id=', '')}${urlParams.toString()}`
+
+  if (urlParamsObj.type === 'msr_data') {
+    newURL = `${newURL}&n_limit=${nLimit !== 0 ? nLimit : 20}`
+  }
+
+  let dtype = urlParamsObj['type'] ?? ''
+  let stype = urlParamsObj['sql_type'] ?? ''
   let variant =
-    (searchParams.get('variant') === '-'
-      ? 'null'
-      : searchParams.get('variant')) ?? ''
-  let newURL: string
-
-  let urlArray: string[] = [
-    rootURL,
-    searchParams.get('compound_id') ?? '',
-    '&type=',
-    dtype,
-    '&sql_type=',
-    stype,
-    '&get_mnum_rows=',
-    'false',
-    '&cro=',
-    cro,
-    '&assay_type=',
-    assay_type,
-    '&variant=',
-    variant,
-  ]
-  if (cell_line) {
-    urlArray.push(
-      '&cell_line=',
-      cell_line,
-      '&pct_serum=',
-      pct_serum,
-      '&cell_incubation_hr=',
-      cell_incubation_hr
-    )
-  }
-
-  if (target) {
-    urlArray.push(
-      '&target=',
-      target,
-      '&cofactors=',
-      cofactors,
-      '&atp_conc_um=',
-      atp_conc_um
-    )
-  }
-
-  if (/msr/.test(dtype)) {
-    urlArray.push(
-      '&n_limit=',
-      nLimit !== 0 ? nLimit : searchParams.get('n_limit') ?? 20
-    )
-  }
-
-  newURL = urlArray.join('')
+    urlParamsObj['variant'] === '-' ? 'null' : urlParamsObj['variant']
+  let param1 = 'cell_line' in urlParamsObj ? 'cell' : 'bio'
 
   // console.log(newURL)
   // plotting data
@@ -162,12 +115,10 @@ export default function DisplayTable() {
 
   // fetch the rows of data from db
   const fetchData = async (getMRows = false) => {
-    const getMRowsStr = getMRows.toString().replace(/[\n\r]+/g, '')
-    const indexGetMRows = urlArray.findIndex((el) =>
-      el.includes('&get_mnum_rows=')
-    )
-    urlArray[indexGetMRows + 1] = getMRowsStr
-    newURL = urlArray.join('')
+    if ('get_mnum_rows' in urlParamsObj) {
+      const getMRowsStr = getMRows.toString().replace(/[\n\r]+/g, '')
+      urlParamsObj.get_mnum_rows = getMRowsStr
+    }
     await axios
       .get(newURL, axiosConfig)
       .then(async (res) => {
@@ -407,24 +358,24 @@ export default function DisplayTable() {
           handleChangeNLimit={handleChangeNLimit}
           handleNLimitButtonClick={handleNLimitButtonClick}
           metadata={
-            cell_line
+            param1 === 'cell'
               ? {
                   cell: [
-                    cro,
-                    assay_type,
-                    cell_line,
-                    cell_incubation_hr,
-                    pct_serum,
+                    urlParamsObj.cro,
+                    urlParamsObj.assay_type,
+                    urlParamsObj.cell_line,
+                    urlParamsObj.cell_incubation_hr,
+                    urlParamsObj.pct_serum,
                     variant,
                   ],
                 }
               : {
                   bio: [
-                    cro,
-                    assay_type,
-                    target,
-                    atp_conc_um,
-                    cofactors,
+                    urlParamsObj.cro,
+                    urlParamsObj.assay_type,
+                    urlParamsObj.target,
+                    urlParamsObj.atp_conc_um,
+                    urlParamsObj.cofactors,
                     variant,
                   ],
                 }
