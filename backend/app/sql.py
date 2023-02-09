@@ -232,7 +232,7 @@ sql_cmds = {
             t1.pct_serum) AS m
     FROM
         ds3_userdata.su_cellular_growth_drc t1
-        INNER JOIN ds3_userdata.CELLULAR_IC50_FLAGS t2 ON t1.PID = t2.PID
+        LEFT OUTER JOIN ds3_userdata.CELLULAR_IC50_FLAGS t2 ON t1.PID = t2.PID
     WHERE
             t1.assay_intent = 'Screening'
             AND t1.validated = 'VALIDATED'
@@ -303,7 +303,7 @@ sql_cmds = {
          t2.USER_NAME,
          t2.CHANGE_DATE
     FROM DS3_USERDATA.SU_CELLULAR_GROWTH_DRC t1
-    INNER JOIN DS3_USERDATA.CELLULAR_IC50_FLAGS t2
+    LEFT OUTER JOIN DS3_USERDATA.CELLULAR_IC50_FLAGS t2
     ON t1.pid = t2.pid) t3
     """,
     "MSR_DATA": """
@@ -456,7 +456,7 @@ sql_cmds = {
             t1.atp_conc_um) AS m
     FROM
         ds3_userdata.su_biochem_drc t1
-        INNER JOIN ds3_userdata.BIOCHEM_IC50_FLAGS t2 ON t1.PID = t2.PID
+        LEFT OUTER JOIN ds3_userdata.BIOCHEM_IC50_FLAGS t2 ON t1.PID = t2.PID
     WHERE
             t1.assay_intent = 'Screening'
             AND t1.validated = 'VALIDATED'
@@ -523,7 +523,7 @@ sql_cmds = {
                      t2.change_date,
                      t1.PID
                FROM DS3_USERDATA.SU_BIOCHEM_DRC t1
-               INNER JOIN DS3_USERDATA.BIOCHEM_IC50_FLAGS t2
+               LEFT OUTER JOIN DS3_USERDATA.BIOCHEM_IC50_FLAGS t2
                ON t1.pid = t2.pid) t3
             """,
 }
