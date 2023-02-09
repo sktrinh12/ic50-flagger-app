@@ -13,8 +13,7 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "localhost:3000",
-    "http://geomean.frontend.kinnate",
-    "geomean.frontend.kinnate",
+    "*.kinnate",
 ]
 
 app.add_middleware(
