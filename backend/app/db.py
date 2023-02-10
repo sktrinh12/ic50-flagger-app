@@ -5,6 +5,9 @@ from datetime import datetime
 from os import getenv
 import re
 
+ENV = getenv("INSTANCE_TYPE", None)
+CREDS_ARG = getenv("ORACLE_CREDS_ARG")
+
 
 def generate_sql_stmt(payload):
     """
@@ -109,17 +112,17 @@ def generate_sql_stmt(payload):
             )
 
     elif payload["SQL_TYPE"].upper() == "UPDATE":
-        sql_stmt = "UPDATE DS3_USERDATA."
+        sql_stmt = "INSERT INTO DS3_USERDATA."
         if payload["TYPE"].upper().startswith("CELLULAR"):
-            sql_stmt += "CELLULAR_IC50_FLAGS"
+            sql_stmt += "CELLULAR_IC50_FLAG_M"
         elif payload["TYPE"].upper().startswith("BIOCHEM"):
-            sql_stmt += "BIOCHEM_IC50_FLAGS"
+            sql_stmt += "BIOCHEM_IC50_FLAG_M"
 
-        sql_stmt += f""" SET FLAG = {payload["FLAG"]},
-                             USER_NAME = '{payload['USER_NAME']}',
-                             CHANGE_DATE = TO_TIMESTAMP('{datetime.now().strftime('%d-%b-%Y %H:%M:%S')}', 'DD-MON-YYYY HH24:MI:SS'),
-                             COMMENT_TEXT = '{payload['COMMENT_TEXT']}'
-                         WHERE PID = '{payload["PID"]}'
+        sql_stmt += f""" VALUES ('{payload["PID"]}',
+                             {payload["FLAG"]},
+                             TO_TIMESTAMP('{datetime.now().strftime('%d-%b-%Y %H:%M:%S')}', 'DD-MON-YYYY HH24:MI:SS'),
+                             '{payload['USER_NAME']}',
+                             '{payload['COMMENT_TEXT']}')
                      """
 
     return sql_stmt, payload
@@ -160,12 +163,12 @@ def generic_oracle_query(sql_stmt, payload):
         with OracleConnection(
             cred_dct["USERNAME"],
             cred_dct["PASSWORD"],
-            cred_dct["HOST" if getenv("ORACLE_CREDS_ARG") else "HOST-DEV"],
+            cred_dct["HOST" if CREDS_ARG else "HOST-DEV"],
             cred_dct["PORT"],
             cred_dct["SID"],
         ) as con:
 
-            if getenv("INSTANCE_TYPE", None) is None:
+            if ENV is None:
                 print("-" * 35)
                 print(sql_stmt)
                 print("-" * 35)
