@@ -49,7 +49,6 @@ export default function DisplayTable() {
   // PARAMETERS
   const [flag, setFlag] = useState('')
   const [editFlag, setEditFlag] = useState(null)
-  const [username, setUsername] = useState('TESTADMIN')
   const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [columnLoading, setColumnLoading] = useState([])
@@ -70,10 +69,7 @@ export default function DisplayTable() {
   const axiosConfig = {
     withCredentials: false,
     headers: {
-      'Content-Type':
-        'application/x-www-form-urlencoded;charset=UTF-8;application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,PUT,POST',
+      'Content-Type': 'application/json',
     },
   }
 
@@ -89,6 +85,7 @@ export default function DisplayTable() {
 
   let dtype = urlParamsObj['type'] ?? ''
   let stype = urlParamsObj['sql_type'] ?? ''
+  let username = urlParamsObj['username'] ?? 'TESTADMIN'
   let variant =
     urlParamsObj['variant'] === '-' ? 'null' : urlParamsObj['variant']
   let param1 = 'cell_line' in urlParamsObj ? 'cell' : 'bio'
@@ -137,7 +134,6 @@ export default function DisplayTable() {
               .fill()
               .map((_, i) => commentRefs.current[i] || createRef())
           }
-          setUsername(searchParams.get('user_name'))
         }
         setLoading(false)
       })
@@ -179,6 +175,7 @@ export default function DisplayTable() {
   }
 
   const handleNLimitButtonClick = (e) => {
+    e.preventDefault()
     fetchPlotData()
     // setMsrPlotTrigger(msrPlotTrigger + 1)
     // console.log(msrPlotTrigger)
@@ -211,7 +208,7 @@ export default function DisplayTable() {
       '&user_name=',
       username,
     ].join('')
-    // console.log(`url: ${url}`);
+    console.log(`url: ${url}`)
 
     const newTableData = [...tableData]
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag)
@@ -258,6 +255,7 @@ export default function DisplayTable() {
       COMMENT_TEXT,
       USER_NAME,
     }))(tmpPostDataObj)
+    console.log('test')
     console.log(tmpPostDataObj)
 
     axios
