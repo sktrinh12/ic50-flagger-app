@@ -20,10 +20,20 @@ const titles = [
 ]
 
 let promises
+
 describe('DisplayTable component', () => {
   beforeEach(() => {
     getSpy = jest.spyOn(axios, 'get').mockImplementation(() => {
       return Promise.resolve(mockData)
+    })
+    process.env = {
+      REACT_APP_BACKEND_URL: 'http://geomean.backend.prod.kinnate',
+    }
+    const mockHref =
+      'compound_id=FT006787&type=biochem_stats&sql_type=get&get_mnum_rows=false&cro=Pharmaron&assay_type=Caliper&target=CDK2&atp_conc_um=10&cofactors=null'
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { search: mockHref },
     })
   })
 
