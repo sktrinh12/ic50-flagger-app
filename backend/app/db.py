@@ -1,4 +1,4 @@
-from .oracle_class import OracleConnection
+from .oracle_class import OracleConnection, cx_Oracle
 from .credentials import cred_dct
 from .sql import sql_cmds, field_names_dct
 from datetime import datetime
@@ -6,7 +6,7 @@ from os import getenv
 import re
 
 ENV = getenv("INSTANCE_TYPE", None)
-CREDS_ARG = getenv("ORACLE_CREDS_ARG")
+CREDS_ARG = getenv("ORACLE_CREDS_ARG", "dev")
 
 
 def generate_sql_stmt(payload):
@@ -112,20 +112,26 @@ def generate_sql_stmt(payload):
             )
 
     elif payload["SQL_TYPE"].upper() == "UPDATE":
-        sql_stmt = "INSERT INTO DS3_USERDATA."
-        if payload["TYPE"].upper().startswith("CELLULAR"):
-            sql_stmt += "CELLULAR_IC50_FLAG_M"
-        elif payload["TYPE"].upper().startswith("BIOCHEM"):
-            sql_stmt += "BIOCHEM_IC50_FLAG_M"
-
-        sql_stmt += f""" VALUES ('{payload["PID"]}',
-                             {payload["FLAG"]},
-                             TO_TIMESTAMP('{datetime.now().strftime('%d-%b-%Y %H:%M:%S')}', 'DD-MON-YYYY HH24:MI:SS'),
-                             '{payload['USER_NAME']}',
-                             '{payload['COMMENT_TEXT']}')
-                     """
+        sql_stmt = "ds3_userdata.update_ic50_flag"
 
     return sql_stmt, payload
+
+
+def insert_update_flag(cur, payload, sql_stmt):
+    v_result = cur.var(cx_Oracle.NUMBER)
+    cur.callproc(
+        sql_stmt,
+        (
+            payload["PID"],
+            payload["FLAG"],
+            payload["USER_NAME"],
+            payload["COMMENT_TEXT"],
+            payload["TYPE"],
+            v_result,
+        ),
+    )
+    result = v_result.getvalue()
+    return result
 
 
 def extract_data(output, payload):
@@ -163,7 +169,7 @@ def generic_oracle_query(sql_stmt, payload):
         with OracleConnection(
             cred_dct["USERNAME"],
             cred_dct["PASSWORD"],
-            cred_dct["HOST" if CREDS_ARG else "HOST-DEV"],
+            cred_dct["HOST" if CREDS_ARG.startswith("p") else "HOST-DEV"],
             cred_dct["PORT"],
             cred_dct["SID"],
         ) as con:
@@ -174,13 +180,13 @@ def generic_oracle_query(sql_stmt, payload):
                 print("-" * 35)
 
             with con.cursor() as cursor:
-                cursor.execute(sql_stmt)
                 if payload["SQL_TYPE"].upper() == "UPDATE":
-                    con.commit()
-                    return {"STATUS": f'{payload["PID"]} row updated'}
+                    res = insert_update_flag(con.cursor(), payload, sql_stmt)
+                    return {"STATUS": f'{payload["PID"]} row updated', "RETURN": res}
                 elif payload["SQL_TYPE"].upper() == "GET":
+                    cursor.execute(sql_stmt)
                     result = extract_data(cursor.fetchall(), payload)
-                    if getenv("INSTANCE_TYPE", None) is None:
+                    if ENV is None:
                         print(result)
                     return result
                 else:
