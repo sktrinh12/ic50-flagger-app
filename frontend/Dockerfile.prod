@@ -16,9 +16,10 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY /geomean-ic50-flagger/frontend/package*.json ./
 RUN npm install 
 
-# add app & build
+# add app test & build
 COPY /geomean-ic50-flagger/frontend ./
 
+RUN npm run test
 RUN npm run build
 
 FROM nginx:alpine
