@@ -3,7 +3,7 @@ from os import getenv
 # if env is prod read from env vars else read from local file
 
 cred_dct = {}
-if getenv("ORACLE_CREDS_ARG") == "y":
+if getenv("INSTANCE_TYPE", "dev").startswith("p"):
     cred_dct["HOST"] = getenv("ORACLE_HOST")
     cred_dct["USERNAME"] = getenv("ORACLE_USER")
     cred_dct["PASSWORD"] = getenv("ORACLE_PASS")
@@ -20,5 +20,5 @@ else:
             value = str_split[1].strip()
             cred_dct[key] = value
     print(
-        f'running in dev: {cred_dct["HOST"] if getenv("ORACLE_CREDS_ARG") else cred_dct["HOST-DEV"]}'
+        f'running in dev: {cred_dct["HOST"] if getenv("ORACLE_CREDS_ARG").startswith("p") else cred_dct["HOST-DEV"]}'
     )
