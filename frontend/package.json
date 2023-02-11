@@ -21,8 +21,8 @@
   },
   "scripts": {
     "start": "REACT_APP_BACKEND_URL=\"http://localhost:8000\" react-scripts start",
-    "build": "REACT_APP_BACKEND_URL=\"http://geomean.backend.kinnate:8000\" react-scripts build",
-    "test": "REACT_APP_BACKEND_URL=\"http://localhost:8000\" react-scripts test",
+    "build": "export NODE_OPTIONS=--max_old_space_size=4096 && react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject",
     "coverage": "jest --coverage"
   },
@@ -48,7 +48,6 @@
     "@cfaester/enzyme-adapter-react-18": "^0.6.0",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^29.4.0",
-    "canvas": "^2.11.0",
     "enzyme": "^3.11.0",
     "jest": "^27.5.1",
     "prettier": "^2.8.3",
