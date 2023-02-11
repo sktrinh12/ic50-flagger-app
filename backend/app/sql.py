@@ -232,7 +232,7 @@ sql_cmds = {
             t1.pct_serum) AS m
     FROM
         ds3_userdata.su_cellular_growth_drc t1
-        LEFT OUTER JOIN ds3_userdata.CELLULAR_IC50_FLAG_M t2 ON t1.PID = t2.PID
+        LEFT OUTER JOIN ds3_userdata.CELLULAR_IC50_FLAGS t2 ON t1.PID = t2.PID
     WHERE
             t1.assay_intent = 'Screening'
             AND t1.validated = 'VALIDATED'
@@ -303,7 +303,7 @@ sql_cmds = {
          nvl2(t2.USER_NAME, t2.USER_NAME, 'TESTADMIN') USER_NAME,
          nvl2(t2.CHANGE_DATE,t2.CHANGE_DATE, SYSDATE) CHANGE_DATE
     FROM DS3_USERDATA.SU_CELLULAR_GROWTH_DRC t1
-    LEFT OUTER JOIN DS3_USERDATA.CELLULAR_IC50_FLAG_M t2
+    LEFT OUTER JOIN DS3_USERDATA.CELLULAR_IC50_FLAGS t2
     ON t1.pid = t2.pid) t3
     """,
     "MSR_DATA": """
@@ -456,7 +456,7 @@ sql_cmds = {
             t1.atp_conc_um) AS m
     FROM
         ds3_userdata.su_biochem_drc t1
-        LEFT OUTER JOIN ds3_userdata.BIOCHEM_IC50_FLAG_M t2 ON t1.PID = t2.PID
+        LEFT OUTER JOIN ds3_userdata.BIOCHEM_IC50_FLAGS t2 ON t1.PID = t2.PID
     WHERE
             t1.assay_intent = 'Screening'
             AND t1.validated = 'VALIDATED'
@@ -520,10 +520,10 @@ sql_cmds = {
                      t1.ic50_nm,
                      nvl2(t2.COMMENT_TEXT, t2.COMMENT_TEXT, 'ENTER COMMENT') COMMENT_TEXT,
                      nvl2(t2.USER_NAME, t2.USER_NAME, 'TESTADMIN') USER_NAME,
-                     nvl2(t2.CHANGE_DATE, t2.CHANGE_DATE, SYSDATE) CHANGE_DATE
+                     nvl2(t2.CHANGE_DATE, t2.CHANGE_DATE, SYSDATE) CHANGE_DATE,
                      t1.PID
                FROM DS3_USERDATA.SU_BIOCHEM_DRC t1
-               LEFT OUTER JOIN DS3_USERDATA.BIOCHEM_IC50_FLAG_M t2
+               LEFT OUTER JOIN DS3_USERDATA.BIOCHEM_IC50_FLAGS t2
                ON t1.pid = t2.pid) t3
             """,
 }
