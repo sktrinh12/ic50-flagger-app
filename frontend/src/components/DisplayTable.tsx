@@ -4,7 +4,6 @@ import EditableRow from './EditableRow'
 import EnchancedTableHead from './EnhancedTableHead'
 import * as React from 'react'
 import axios from 'axios'
-import { useSearchParams } from 'react-router-dom'
 import ReactLoading from 'react-loading'
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
@@ -22,41 +21,68 @@ interface TableDataType {
   PID: string
   EXPERIMENT_ID: string
   BATCH_ID: string
-  TARGET: string
-  VARIANT: string
+  CRO?: string
+  ASSAY_TYPE?: string
+  COMPOUND_ID?: string
+  TARGET?: string
+  CELL_LINE?: string
+  CELL_INCUBATION_HR?: number
+  PCT_SERUM?: number
+  WASHOUT?: string
+  ATP_CONC_UM?: number
+  COFACTORS?: string
+  VARIANT?: string
   FLAG: number
+  GEOMEAN?: number
+  COMMENT_TEXT?: string
+  CHANGE_DATE?: Date
+  USER_NAME?: string
+  PLOT?: string
+}
+
+interface PostDataType {
+  PID: string
+  FLAG: number
+  COMMENT_TEXT: string
+  CHANGE_DATE: Date
+  USER_NAME: string
+  GEOMEAN?: number
+  PLOT?: string
+  COMPOUND_ID?: string
+  CRO?: string
+  ASSAY_TYPE?: string
+  VARIANT?: string
+  BATCH_ID?: string
 }
 
 export default function DisplayTable() {
-  const { REACT_APP_BACKEND_URL } = process.env
-  const [tableData, setTableData] = useState([
+  const { REACT_APP_BACKEND_URL } = process.env || 'http://localhost:8000'
+  const [tableData, setTableData] = useState<TableDataType[]>([
     {
-      ID: null,
-      EXPERIMENT_ID: null,
-      BATCH_ID: null,
-      TARGET: null,
-      VARIANT: null,
-      FLAG: null,
+      ID: 0,
+      PID: 'pid',
+      EXPERIMENT_ID: 'expid123',
+      BATCH_ID: 'batch123',
+      FLAG: 0,
     },
   ])
   const [msrData, setMsrData] = useState([])
   const [nLimit, setNLimit] = useState(0)
   const [msrPlotLoading, setMsrPlotLoading] = useState(false)
-  // const [msrPlotTrigger, setMsrPlotTrigger] = useState(0)
 
   // for comment and username references
-  const commentRefs = useRef([])
+  const commentRefs = useRef<Array<React.RefObject<HTMLInputElement>>>([])
+
   // PARAMETERS
-  const [flag, setFlag] = useState('')
-  const [editFlag, setEditFlag] = useState(null)
-  const [searchParams] = useSearchParams()
+  const [flag, setFlag] = useState<number>(0)
+  const [editFlag, setEditFlag] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [columnLoading, setColumnLoading] = useState([])
+  const [columnLoading, setColumnLoading] = useState<(string | null)[]>([])
   // MUI TABLE
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [filterFn, setFilterFn] = useState({
-    fn: (items) => {
+    fn: (items: TableDataType[]) => {
       return items
     },
   })
@@ -83,8 +109,8 @@ export default function DisplayTable() {
     newURL = `${newURL}&n_limit=${nLimit !== 0 ? nLimit : 20}`
   }
 
-  let dtype = urlParamsObj['type'] ?? ''
-  let stype = urlParamsObj['sql_type'] ?? ''
+  let dtype = urlParamsObj['type']
+  let stype = urlParamsObj['sql_type']
   let username = urlParamsObj['username'] ?? 'TESTADMIN'
   let variant =
     urlParamsObj['variant'] === '-' ? 'null' : urlParamsObj['variant']
@@ -120,8 +146,11 @@ export default function DisplayTable() {
       .get(newURL, axiosConfig)
       .then(async (res) => {
         const json = res.data
-        if (REACT_APP_BACKEND_URL.match(/localhost/g)) {
-          console.log(`url: ${newURL}`)
+        if (
+          typeof REACT_APP_BACKEND_URL !== 'undefined' &&
+          REACT_APP_BACKEND_URL.match(/localhost/g)
+        ) {
+          // console.log(`url: ${newURL}`)
           // console.log(json)
         }
         if (res.status === 200) {
@@ -131,7 +160,7 @@ export default function DisplayTable() {
           // console.log(`table length: ${tableLength}`)
           if (commentRefs.current.length !== tableLength) {
             commentRefs.current = Array(tableLength)
-              .fill()
+              .fill(undefined)
               .map((_, i) => commentRefs.current[i] || createRef())
           }
         }
@@ -153,14 +182,15 @@ export default function DisplayTable() {
   }, [])
 
   // change only affected rows and values
-  const setMrowsData = (postDataRows) => {
+  const setMrowsData = (postDataRows: PostDataType) => {
     console.log('ROWS')
     console.log(postDataRows)
     console.log('------------')
     console.log('TABLEDATA')
 
-    const newTableData = tableData.map((a) => {
-      postDataRows.forEach((e) => {
+    const newTableData = tableData.map((a: TableDataType) => {
+      // avoid TS forEach does not exist for PostDataType error
+      ;(postDataRows as any).forEach((e: PostDataType) => {
         if (a.PID === e.PID) {
           a.GEOMEAN = e.GEOMEAN
           a.COMMENT_TEXT = e.COMMENT_TEXT
@@ -170,19 +200,18 @@ export default function DisplayTable() {
       })
       return a
     })
+    console.log(newTableData)
     setTableData(newTableData)
     setColumnLoading([])
   }
 
-  const handleNLimitButtonClick = (e) => {
+  const handleNLimitButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     fetchPlotData()
-    // setMsrPlotTrigger(msrPlotTrigger + 1)
-    // console.log(msrPlotTrigger)
   }
 
-  const handleChangeNLimit = (event) => {
-    setNLimit(event.target.value)
+  const handleChangeNLimit = (event: React.ChangeEvent<HTMLButtonElement>) => {
+    setNLimit(parseInt(event.target.value))
     // console.log(nLimit)
   }
 
@@ -191,16 +220,18 @@ export default function DisplayTable() {
   }
 
   // set the flag value when click on radio button
-  const handleEditFormChange = (event) => {
+  const handleEditFormChange = (
+    event: React.ChangeEvent<HTMLButtonElement>
+  ) => {
     event.preventDefault()
-    const flagValue = event.target.value
+    // console.log(event.target.value)
+    const flagValue = parseInt(event.target.value)
     setFlag(flagValue)
   }
 
   // post data to db
-  const handleEditFormSubmit = (event) => {
+  const handleEditFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
     const url = [
       REACT_APP_BACKEND_URL,
       '/v1/change-data?sql_type=update&type=',
@@ -213,8 +244,8 @@ export default function DisplayTable() {
     const newTableData = [...tableData]
     const index = tableData.findIndex((tdata) => tdata.ID === editFlag)
 
-    // console.log(`flag: ${flag}`);
-    newTableData[index]['FLAG'] = flag === 'include' ? 0 : 1
+    // console.log(`flag: ${flag}`)
+    newTableData[index]['FLAG'] = flag
     setEditFlag(null)
     let tmpPostDataObj = Object.assign({}, newTableData[index])
 
@@ -225,7 +256,7 @@ export default function DisplayTable() {
     let { PLOT, ...postDataObj } = tmpPostDataObj
 
     let pids = newTableData
-      .map((td) =>
+      .map((td: TableDataType) =>
         td.COMPOUND_ID === postDataObj.COMPOUND_ID &&
         td.CRO === postDataObj.CRO &&
         td.ASSAY_TYPE === postDataObj.ASSAY_TYPE &&
@@ -248,14 +279,23 @@ export default function DisplayTable() {
     tmpPostDataObj['COMMENT_TEXT'] = handleElmChangeFromRef(index)
     tmpPostDataObj['USER_NAME'] = username // over-write the username
     // Using Object Destructuring and Property Shorthand to select certain keys
-    tmpPostDataObj = (({ BATCH_ID, FLAG, PID, COMMENT_TEXT, USER_NAME }) => ({
+    tmpPostDataObj = (({
+      ID,
       BATCH_ID,
+      EXPERIMENT_ID,
+      FLAG,
+      PID,
+      COMMENT_TEXT,
+      USER_NAME,
+    }) => ({
+      ID,
+      BATCH_ID,
+      EXPERIMENT_ID,
       FLAG,
       PID,
       COMMENT_TEXT,
       USER_NAME,
     }))(tmpPostDataObj)
-    console.log('test')
     console.log(tmpPostDataObj)
 
     axios
@@ -273,21 +313,26 @@ export default function DisplayTable() {
 
   // grab the comment using vanilla js and indexing the elm ref
   const handleElmChangeFromRef = (idx: number) => {
-    const parentElm = commentRefs.current[idx]
-    const textValue = parentElm.getElementsByTagName('textarea')[0].value
-    return textValue
+    const inputEl = commentRefs.current[idx]
+    if (inputEl && inputEl.current) {
+      const parentElm = inputEl.current as HTMLElement
+      const textValue = parentElm.getElementsByTagName('textarea')[0].value
+      return textValue
+    }
+    return ''
   }
 
   // trigger change to edit mode for <ReadRow>
-  const handleEditClick = (event, tdata) => {
+  const handleEditClick = (
+    event: React.ChangeEvent<HTMLButtonElement>,
+    tdata: TableDataType
+  ) => {
     event.preventDefault()
     setEditFlag(tdata.ID)
+    // console.log(tdata.ID)
 
-    let flagValue = tdata.FLAG
-    flagValue = flagValue === 0 ? 'include' : 'exclude'
-    // console.log(flagValue);
-
-    setFlag(flagValue)
+    // console.log(tdata.FLAG)
+    setFlag(tdata.FLAG)
   }
 
   // cancel from edit mode
@@ -296,38 +341,45 @@ export default function DisplayTable() {
   }
 
   // for pagination
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (
+    event: MouseEvent<HTMLButtonElement, MouseEvent>,
+    newPage: number
+  ) => {
     setPage(newPage)
   }
 
   // for number of pages
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(+event.target.value)
     setPage(0)
   }
 
-  // sort the columns
-  const handleRequestSort = (event, property) => {
+  // sort the columns based on a key (field name)
+  const handleRequestSort = (property: keyof TableDataType): void => {
     const isAsc = orderBy === property && order === 'asc'
     setOrder(isAsc ? 'desc' : 'asc')
     setOrderBy(property)
   }
 
   // filter rows based on input text
-  const handleSearchFilter = (field) => (e) => {
-    let target = e.target
-    setFilterFn({
-      fn: (items) => {
-        if (target.value === '') return items
-        else
-          return items.filter(
-            (x) =>
-              x[field]?.toLowerCase().startsWith(target.value.toLowerCase())
-            // new RegExp(target.value, "i").test(x[field])
-          )
-      },
-    })
-  }
+  const handleSearchFilter =
+    (field: keyof TableDataType) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      let target = e.target
+      setFilterFn({
+        fn: (items) => {
+          if (target.value === '') return items
+          else
+            return items.filter((x: TableDataType) =>
+              new RegExp(target.value.toLowerCase(), 'i').test(
+                (x[field] as string).toLowerCase()
+              )
+            )
+        },
+      })
+    }
 
   return (
     <>
@@ -414,7 +466,9 @@ export default function DisplayTable() {
                               data={tdata}
                               handleEditFormChange={handleEditFormChange}
                               flag={flag}
-                              commentRef={(el) => (commentRefs.current[i] = el)}
+                              commentRef={(
+                                el: React.RefObject<HTMLInputElement>
+                              ) => (commentRefs.current[i] = el)}
                               handleCancelClick={handleCancelClick}
                             />
                           ) : (
