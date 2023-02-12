@@ -201,6 +201,11 @@ const mockNumber = 30
 
 describe('MSR plot components', () => {
   test('Check if plotly, download button and number input components render', () => {
+    jest.mock('plotly.js', () => {
+      return {
+        default: jest.fn(),
+      }
+    })
     wrapper = shallow(
       <MSRPlot
         msrData={mockData}
