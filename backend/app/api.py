@@ -25,11 +25,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # main root endpoint
 @app.get("/")
 def read_root():
     payload = generic_oracle_query("SELECT * FROM v$version", {"SQL_TYPE": "blank"})
-    return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
+    if payload:
+        return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
+    return {"Error Code": status.HTTP_400_BAD_REQUEST, "INFO": f"payload: {payload}"}
 
 
 # fetch table data endpoint
