@@ -12,7 +12,6 @@ const styles = {
   },
   '& .MuiDrawer-paper': {
     width: 240,
-    // position: "absolute",
     flexShrink: 0,
     height: 700,
     padding: '10px',
@@ -25,14 +24,7 @@ const inputStyles = {
   padding: '10px',
 }
 
-const FilterTab = ({
-  dtype,
-  open,
-  handleSearchFilter,
-  handleNavToPlot,
-  nLimit,
-  handleNlimitChange,
-}) => {
+const FilterTab = ({ dtype, open, handleSearchFilter }) => {
   return (
     <Drawer open={open} sx={styles} variant='persistent' anchor='right'>
       {/cellular_all|cellular_stats/.test(dtype) && (
