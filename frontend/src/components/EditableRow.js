@@ -14,7 +14,7 @@ const EditableRow = ({
   const renderContent = (param, column) => {
     return (
       <>
-        {[0, 1, 'include', 'exclude'].includes(param) && column === 'FLAG' ? (
+        {[0, 1].includes(param) && column === 'FLAG' ? (
           <RadioButtonsGroup
             flag={flag}
             data={data}
@@ -53,7 +53,9 @@ const EditableRow = ({
       })}
       <TableCell
         align={'center'}
-        key={`ACTION-${parseInt(keyValue.replace(/^\D+/g, '')) + 5000}`}
+        key={`ACTION-${
+          parseInt(keyValue.replace(/^\D+/g, '')) + Math.random()
+        }`}
       >
         <>
           <button type='submit'>Save</button>
