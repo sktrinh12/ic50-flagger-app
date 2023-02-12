@@ -1,12 +1,12 @@
 from .oracle_class import OracleConnection, cx_Oracle
 from .credentials import cred_dct
 from .sql import sql_cmds, field_names_dct
-from datetime import datetime
 from os import getenv
 import re
 
-ENV = getenv("INSTANCE_TYPE", None)
+ENV = getenv("INSTANCE_TYPE", "dev")
 CREDS_ARG = getenv("ORACLE_CREDS_ARG", "dev")
+print(f"env: {ENV}, arg: {CREDS_ARG}")
 
 
 def generate_sql_stmt(payload):
@@ -174,7 +174,7 @@ def generic_oracle_query(sql_stmt, payload):
             cred_dct["SID"],
         ) as con:
 
-            if ENV is None:
+            if ENV == "dev":
                 print("-" * 35)
                 print(sql_stmt)
                 print("-" * 35)
@@ -186,10 +186,11 @@ def generic_oracle_query(sql_stmt, payload):
                 elif payload["SQL_TYPE"].upper() == "GET":
                     cursor.execute(sql_stmt)
                     result = extract_data(cursor.fetchall(), payload)
-                    if ENV is None:
+                    if ENV == "dev":
                         print(result)
                     return result
                 else:
+                    cursor.execute(sql_stmt)
                     result = cursor.fetchone()
                     return result
     except Exception as e:
