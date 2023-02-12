@@ -1405,14 +1405,18 @@ describe('Check ReadRow component', () => {
   it('renders table row with mock data', async () => {
     mockData.forEach((data, i) => {
       render(
-        <ReadRow
-          data={data}
-          keyValue={`${data.PID}-READ-${i}`}
-          username={data.USER_NAME}
-          types={['cellular_stats', 'get']}
-          columnLoading={false}
-          handleEditClick={jest.fn()}
-        />
+        <table>
+          <tbody>
+            <ReadRow
+              data={data}
+              keyValue={`${data.PID}-READ-${i}`}
+              username={data.USER_NAME}
+              types={['cellular_stats', 'get']}
+              columnLoading={false}
+              handleEditClick={jest.fn()}
+            />
+          </tbody>
+        </table>
       )
       expect(screen.getAllByText(data.COMPOUND_ID)).toBeTruthy()
       expect(screen.getAllByText(data.CRO)).toBeTruthy()

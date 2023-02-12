@@ -31,14 +31,18 @@ afterEach(cleanup)
 describe('Check ReadRow component', () => {
   it('renders table row with mock data', async () => {
     render(
-      <ReadRow
-        data={mockData}
-        keyValue={`${mockData.PID}-READ-1`}
-        username={mockData.USER_NAME}
-        types={['cellular_agg', 'get']}
-        columnLoading={false}
-        handleEditClick={jest.fn()}
-      />
+      <table>
+        <tbody>
+          <ReadRow
+            data={mockData}
+            keyValue={`${mockData.PID}-READ-1`}
+            username={mockData.USER_NAME}
+            types={['cellular_agg', 'get']}
+            columnLoading={false}
+            handleEditClick={jest.fn()}
+          />
+        </tbody>
+      </table>
     )
     expect(
       screen.getByText(mockData.CELL_INCUBATION_HR.toString())
