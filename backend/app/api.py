@@ -5,9 +5,12 @@ from .schemas import GetDataSchema
 from fastapi import Query
 from typing import List
 from .functions import get_msr_stats
+from .redis_connection import redis_conn
+from json import loads
 
 
 app = FastAPI()
+
 
 # for cors
 origins = [
@@ -33,6 +36,13 @@ def read_root():
     if payload:
         return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
     return {"Error Code": status.HTTP_400_BAD_REQUEST, "INFO": f"payload: {payload}"}
+
+
+# get redis ft numbers
+@app.get("/compound_ids")
+def get_compound_ids():
+    compound_ids = redis_conn.lrange("compound_ids", 0, -1)
+    return {"compound_ids": list(map(lambda x: loads(x.decode("utf-8")), compound_ids))}
 
 
 # fetch table data endpoint
