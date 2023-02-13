@@ -4,9 +4,9 @@ from .sql import sql_cmds, field_names_dct
 from os import getenv
 import re
 
-ENV = getenv("INSTANCE_TYPE", "dev")
-CREDS_ARG = getenv("ORACLE_CREDS_ARG", "dev")
-print(f"env: {ENV}, arg: {CREDS_ARG}")
+DB_TYPE = getenv("DB_TYPE")
+ENV = getenv("ENV")
+print(f"env: {ENV}")
 
 
 def generate_sql_stmt(payload):
@@ -169,12 +169,12 @@ def generic_oracle_query(sql_stmt, payload):
         with OracleConnection(
             cred_dct["USERNAME"],
             cred_dct["PASSWORD"],
-            cred_dct["HOST" if CREDS_ARG.startswith("p") else "HOST-DEV"],
+            cred_dct["HOST" if DB_TYPE == "PROD" or ENV == "PROD" else "HOST-DEV"],
             cred_dct["PORT"],
             cred_dct["SID"],
         ) as con:
 
-            if ENV == "dev":
+            if ENV == "DEV":
                 print("-" * 35)
                 print(sql_stmt)
                 print("-" * 35)
@@ -186,7 +186,7 @@ def generic_oracle_query(sql_stmt, payload):
                 elif payload["SQL_TYPE"].upper() == "GET":
                     cursor.execute(sql_stmt)
                     result = extract_data(cursor.fetchall(), payload)
-                    if ENV == "dev":
+                    if ENV == "DEV":
                         print(result)
                     return result
                 else:
