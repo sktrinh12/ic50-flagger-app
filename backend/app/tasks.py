@@ -7,8 +7,8 @@ from .redis_connection import redis_conn
 
 celery = Celery(
     __name__,
-    broker=f"redis://:{getenv('REDIS_PASSWD')}@127.0.0.1:6379/0",
-    backend=f"redis://:{getenv('REDIS_PASSWD')}@127.0.0.1:6379/0",
+    broker=f"redis://:{getenv('REDIS_PASSWD')}@{getenv('REDIS_HOST')}:6379/0",
+    backend=f"redis://:{getenv('REDIS_PASSWD')}@{getenv('REDIS_HOST')}:6379/0",
 )
 celery.conf.beat_schedule = {
     "update_redis_cache_every_hour": {
