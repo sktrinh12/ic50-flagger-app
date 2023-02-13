@@ -191,7 +191,7 @@ def generic_oracle_query(sql_stmt, payload):
                     return result
                 else:
                     cursor.execute(sql_stmt)
-                    result = cursor.fetchone()
+                    result = cursor.fetchall()
                     return result
     except Exception as e:
         print(f"ERROR {e}")
