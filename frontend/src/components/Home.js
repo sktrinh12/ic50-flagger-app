@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles'
 import Autocomplete from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import axios from 'axios'
+import InputLabel from '@mui/material/InputLabel'
 
 const Pane = styled(Paper)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -103,6 +104,7 @@ const Home = () => {
       <Pane>
         <h1>Kinnate Geomean Viewer</h1>
         <Grid item xs={12}>
+          <InputLabel htmlFor='cmpd-id-search'>Compound ID</InputLabel>
           <Autocomplete
             id='cmpd-id-search'
             open={state.open}
@@ -121,7 +123,6 @@ const Home = () => {
                 {...params}
                 required
                 fullWidth
-                label='Compound ID'
                 value={state.cmpIDinputValue}
                 error={error !== ''}
                 helperText={error}
@@ -145,7 +146,7 @@ const Home = () => {
         </Grid>
 
         <Grid item xs={12}>
-          <RadioGroup name='use-radio-group'>
+          <RadioGroup name='dsource-radio-group'>
             <FormControlLabel
               value='biochem_stats'
               control={<Radio />}
