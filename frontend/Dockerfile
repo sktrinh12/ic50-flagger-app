@@ -3,9 +3,14 @@ FROM node:alpine as build
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 ENV GENERATE_SOURCEMAP=false
-ENV CI=true
+ENV CI=false
 
-RUN apk update && apk upgrade --no-cache
+RUN apk update && apk upgrade --no-cache && \
+		apk add --no-cache \
+		curl \
+		wget \
+		vim
+
 # set working directory
 WORKDIR /app
 
@@ -20,6 +25,7 @@ RUN npm install
 # add app & build
 COPY . ./
 RUN npm run test
+RUN npm run build; exit 0
 RUN npm run build
 
 
