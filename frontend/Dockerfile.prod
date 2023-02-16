@@ -24,7 +24,6 @@ RUN npm install
 COPY /geomean-ic50-flagger/frontend ./
 
 RUN npm run test
-RUN npm run build; exit 0
 RUN npm run build
 
 FROM nginx:alpine
