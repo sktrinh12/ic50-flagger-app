@@ -15,9 +15,10 @@ app = FastAPI()
 # for cors
 origins = [
     "http://localhost:3000",
-    "localhost:3000",
+    "http://localhost",
     "http://geomean.frontend.kinnate",
     "http://geomean.frontend.prod.kinnate",
+    "http://msr-viz.kinnate",
 ]
 
 app.add_middleware(
