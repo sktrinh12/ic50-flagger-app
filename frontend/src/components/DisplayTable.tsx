@@ -14,7 +14,6 @@ import Box from '@mui/material/Box'
 import { sortedRowInformation, getComparator } from './TableSortFunctions'
 import { PurpleColour } from './Colour'
 import FilterTab from './FilterTab'
-import MSRPlot from './MSRPlot'
 
 interface TableDataType {
   ID: number
@@ -66,9 +65,6 @@ export default function DisplayTable() {
       FLAG: 0,
     },
   ])
-  const [msrData, setMsrData] = useState([])
-  const [nLimit, setNLimit] = useState(0)
-  const [msrPlotLoading, setMsrPlotLoading] = useState(false)
 
   // for comment and username references
   const commentRefs = useRef<Array<React.RefObject<HTMLInputElement>>>([])
@@ -112,29 +108,8 @@ export default function DisplayTable() {
   let dtype = urlParamsObj['type']
   let stype = urlParamsObj['sql_type']
   let username = urlParamsObj['username'] ?? 'TESTADMIN'
-  let variant =
-    urlParamsObj['variant'] === '-' ? 'null' : urlParamsObj['variant']
-  let param1 = 'cell_line' in urlParamsObj ? 'cell' : 'bio'
 
   // console.log(newURL)
-  // plotting data
-  const fetchPlotData = async () => {
-    const url = `${newURL.replace('3000', '8000')}`
-    console.log(url)
-    await axios
-      .get(url, axiosConfig)
-      .then(async (res) => {
-        const json = res.data
-        if (res.status === 200) {
-          setMsrData(json)
-          // console.log(msrData)
-        }
-        setLoading(false)
-      })
-      .catch((err) => {
-        console.log('AXIOS ERROR: ', err)
-      })
-  }
 
   // fetch the rows of data from db
   const fetchData = async (getMRows = false) => {
@@ -172,12 +147,7 @@ export default function DisplayTable() {
   }
 
   useEffect(() => {
-    if (dtype === 'msr_data') {
-      fetchPlotData()
-      setMsrPlotLoading(true)
-    } else {
-      fetchData()
-    }
+    fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -203,16 +173,6 @@ export default function DisplayTable() {
     console.log(newTableData)
     setTableData(newTableData)
     setColumnLoading([])
-  }
-
-  const handleNLimitButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    fetchPlotData()
-  }
-
-  const handleChangeNLimit = (event: React.ChangeEvent<HTMLButtonElement>) => {
-    setNLimit(parseInt(event.target.value))
-    // console.log(nLimit)
   }
 
   const handleFilterIconClick = () => {
@@ -401,36 +361,6 @@ export default function DisplayTable() {
             />
           </div>
         </Box>
-      ) : msrPlotLoading ? (
-        <MSRPlot
-          msrData={msrData}
-          nLimit={nLimit !== 0 ? nLimit : 20}
-          handleChangeNLimit={handleChangeNLimit}
-          handleNLimitButtonClick={handleNLimitButtonClick}
-          metadata={
-            param1 === 'cell'
-              ? {
-                  cell: [
-                    urlParamsObj.cro,
-                    urlParamsObj.assay_type,
-                    urlParamsObj.cell_line,
-                    urlParamsObj.cell_incubation_hr,
-                    urlParamsObj.pct_serum,
-                    variant,
-                  ],
-                }
-              : {
-                  bio: [
-                    urlParamsObj.cro,
-                    urlParamsObj.assay_type,
-                    urlParamsObj.target,
-                    urlParamsObj.atp_conc_um,
-                    urlParamsObj.cofactors,
-                    variant,
-                  ],
-                }
-          }
-        />
       ) : (
         <Box sx={{ width: '100%' }}>
           <form onSubmit={handleEditFormSubmit}>
