@@ -20,9 +20,12 @@ const Pane = styled(Paper)(({ theme }) => ({
 }))
 
 const Home = () => {
-  const { REACT_APP_BACKEND_URL } = process.env || 'http://localhost:8000'
+  const {
+    REACT_APP_BACKEND_URL = 'http://localhost:8000',
+    REACT_APP_FRONTEND_URL = 'http://localhost:3000',
+  } = process.env
   const backendURL = `${REACT_APP_BACKEND_URL}/compound_ids`
-  const url = 'http://localhost:3000/get-data?compound_id='
+  const frontendURL = `http://${REACT_APP_FRONTEND_URL}/get-data?compound_id=`
   const [error, setError] = useState('')
   const initialState = {
     dsType: null,
@@ -168,7 +171,7 @@ const Home = () => {
             fullWidth
             variant='contained'
             size='large'
-            href={`${url}${state.cmpIDinputValue}&sql_type=get&type=${state.dsType}`}
+            href={`${frontendURL}${state.cmpIDinputValue}&sql_type=get&type=${state.dsType}`}
             onClick={handleSearchCmpdIDBtnClick}
           >
             Search
