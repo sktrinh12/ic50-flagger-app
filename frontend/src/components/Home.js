@@ -25,7 +25,8 @@ const Home = () => {
     REACT_APP_FRONTEND_URL = 'http://localhost:3000',
   } = process.env
   const backendURL = `${REACT_APP_BACKEND_URL}/compound_ids`
-  const frontendURL = `http://${REACT_APP_FRONTEND_URL}/get-data?compound_id=`
+  const frontendURL = `${REACT_APP_FRONTEND_URL}/get-data?compound_id=`
+  console.log(`back: ${backendURL}, front: ${frontendURL}`)
   const [error, setError] = useState('')
   const initialState = {
     dsType: null,
@@ -37,6 +38,12 @@ const Home = () => {
   const handleRadioButtonChange = (e) => {
     dispatch({ type: 'dsType', payload: e.target.value })
   }
+
+  const handleOnChangeAutocomplete = (e, val) => {
+    e.preventDefault()
+    dispatch({ type: 'cmpIDinputValue', payload: val })
+  }
+
   const handleSearchCmpdIDBtnClick = (e) => {
     const inputValue = state.cmpIDinputValue
     if (!state.dsType) {
@@ -47,7 +54,8 @@ const Home = () => {
       setError('Error: Invalid compound ID!')
     } else {
       setError('')
-      dispatch({ type: 'cmpIDinputValue', payload: inputValue })
+      console.log(inputValue)
+      // dispatch({ type: 'cmpIDinputValue', payload: inputValue })
     }
   }
   const reducer = (state, action) => {
@@ -77,7 +85,10 @@ const Home = () => {
     ;(async () => {
       await axios.get(backendURL).then((res) => {
         if (active) {
-          dispatch({ type: 'cmpIDoptions', payload: res.data.compound_ids })
+          dispatch({
+            type: 'cmpIDoptions',
+            payload: res.data.compound_ids || [],
+          })
         }
         // console.log(res.data.compound_ids)
       })
@@ -121,6 +132,7 @@ const Home = () => {
             getOptionLabel={(option) => option}
             options={state.cmpIDoptions}
             loading={loading}
+            onChange={handleOnChangeAutocomplete}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -129,9 +141,6 @@ const Home = () => {
                 value={state.cmpIDinputValue}
                 error={error !== ''}
                 helperText={error}
-                onChange={(e) =>
-                  dispatch({ type: 'cmpIDinputValue', payload: e.target.value })
-                }
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
