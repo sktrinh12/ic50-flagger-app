@@ -20,7 +20,7 @@
     "react-test-renderer": "^18.2.0"
   },
   "scripts": {
-    "start": "REACT_APP_BACKEND_URL=\"http://localhost:8000\" react-scripts start",
+    "start": "react-scripts start",
     "build": "export NODE_OPTIONS=--max_old_space_size=4096 && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
