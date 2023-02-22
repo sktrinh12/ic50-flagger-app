@@ -1,54 +1,55 @@
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableSortLabel from "@mui/material/TableSortLabel";
-import { IconButton } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import { PurpleColour } from "./Colour";
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import TableSortLabel from '@mui/material/TableSortLabel'
+import { IconButton } from '@mui/material'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import { PurpleColour } from './Colour'
 
 const styles = {
   minWidth: 30,
-  fontWeight: "bold",
+  fontWeight: 'bold',
   backgroundColor: PurpleColour,
-  color: "#efeff6ff",
-};
+  color: '#efeff6ff',
+}
 
 export default function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort, type, handleFilterIconClick } = props;
+  const { order, orderBy, onRequestSort, type, handleFilterIconClick } = props
 
   const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
-  var DataFields = null;
+    onRequestSort(event, property)
+  }
+  var DataFields = null
 
   switch (type) {
-    case "cellular_all":
-      DataFields = require("./TableColumnsCellularAll");
-      break;
-    case "cellular_agg":
-      DataFields = require("./TableColumnsCellularAll");
-      break;
-    case "biochem_all":
-      DataFields = require("./TableColumnsBiochemAll");
-      break;
-    case "biochem_agg":
-      DataFields = require("./TableColumnsBiochemAll");
-      break;
-    case "cellular_stats":
-      DataFields = require("./TableColumnsCellularStats");
-      break;
+    case 'cellular_all':
+      DataFields = require('./TableColumnsCellularAll')
+      break
+    case 'cellular_agg':
+      DataFields = require('./TableColumnsCellularAll')
+      break
+    case 'biochem_all':
+      DataFields = require('./TableColumnsBiochemAll')
+      break
+    case 'biochem_agg':
+      DataFields = require('./TableColumnsBiochemAll')
+      break
+    case 'cellular_stats':
+      DataFields = require('./TableColumnsCellularStats')
+      break
     default:
-      DataFields = require("./TableColumnsBiochemStats");
+      DataFields = require('./TableColumnsBiochemStats')
   }
 
   return (
     <TableHead>
       <TableRow>
         {DataFields.columns.map((column) =>
-          column.label === "GEOMEAN" && type.includes("stats") ? null : (
+          column.label === 'GEOMEAN' && type.includes('stats') ? null : (
             <TableCell
               key={column.id}
               align={column.align}
+              size='small'
               style={{
                 minWidth: column.minWidth,
                 fontWeight: column.fontWeight,
@@ -56,12 +57,12 @@ export default function EnhancedTableHead(props) {
                 color: column.color,
               }}
             >
-              {["PLOT", "FLAG"].includes(column.id) ? (
+              {['PLOT', 'FLAG'].includes(column.id) ? (
                 column.label
               ) : (
                 <TableSortLabel
                   active={orderBy === column.id}
-                  direction={orderBy === column.id ? order : "asc"}
+                  direction={orderBy === column.id ? order : 'asc'}
                   onClick={createSortHandler(column.id)}
                 >
                   {column.label}
@@ -70,15 +71,20 @@ export default function EnhancedTableHead(props) {
             </TableCell>
           )
         )}
-        {type.includes("all") && (
-          <TableCell key={"ACTION"} align={"center"} style={styles}>
+        {type.includes('all') && (
+          <TableCell
+            key={'ACTION'}
+            align={'center'}
+            style={styles}
+            size='small'
+          >
             Action
           </TableCell>
         )}
-        <TableCell key={"FILTER"} align={"center"} style={styles}>
+        <TableCell key={'FILTER'} align={'center'} style={styles} size='small'>
           <IconButton
-            color="inherit"
-            aria-label="filterButton"
+            color='inherit'
+            aria-label='filterButton'
             onClick={handleFilterIconClick}
           >
             <FilterListIcon />
@@ -86,5 +92,5 @@ export default function EnhancedTableHead(props) {
         </TableCell>
       </TableRow>
     </TableHead>
-  );
+  )
 }
