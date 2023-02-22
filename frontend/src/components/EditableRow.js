@@ -46,7 +46,7 @@ const EditableRow = ({
       {DataFields.columns.map((column, i) => {
         const value = data[column.id]
         return (
-          <TableCell align={column.align} key={`${keyValue}-${i}`}>
+          <TableCell align={column.align} key={`${keyValue}-${i}`} size='small'>
             {renderContent(value, column.id)}
           </TableCell>
         )
