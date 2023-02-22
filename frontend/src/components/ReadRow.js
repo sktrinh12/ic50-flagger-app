@@ -104,7 +104,16 @@ const ReadRow = ({
         // console.log(`the nested URL: ${getURL}`)
 
         return (
-          <TableCell align={column.align} key={`${keyValue}-${i}`}>
+          <TableCell
+            align={column.align}
+            key={`${keyValue}-${i}`}
+            size='small'
+            style={
+              column.id === 'FLAG' && data.FLAG === 1
+                ? { backgroundColor: '#fcd96f' }
+                : {}
+            }
+          >
             {columnLoading && column.id === 'GEOMEAN' ? (
               <div style={{ margin: 'auto', padding: '0px' }}>
                 <ReactLoading
@@ -128,6 +137,7 @@ const ReadRow = ({
         <TableCell
           align={'center'}
           key={`ACTION-${keyValue}-${data.COMPOUND_ID}`}
+          size='small'
         >
           <>
             <button
