@@ -274,12 +274,9 @@ export default function DisplayTable() {
   // grab the comment using vanilla js and indexing the elm ref
   const handleElmChangeFromRef = (idx: number) => {
     const inputEl = commentRefs.current[idx]
-    if (inputEl && inputEl.current) {
-      const parentElm = inputEl.current as HTMLElement
-      const textValue = parentElm.getElementsByTagName('textarea')[0].value
-      return textValue
-    }
-    return ''
+    const textValue = inputEl.getElementsByTagName('textarea')[0].value
+    console.log(textValue)
+    return textValue
   }
 
   // trigger change to edit mode for <ReadRow>
