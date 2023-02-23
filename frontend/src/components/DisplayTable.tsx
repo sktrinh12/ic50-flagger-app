@@ -107,7 +107,7 @@ export default function DisplayTable() {
 
   let dtype = urlParamsObj['type']
   let stype = urlParamsObj['sql_type']
-  let username = urlParamsObj['username'] ?? 'TESTADMIN'
+  let username = urlParamsObj['user_name'] ?? 'TESTADMIN'
 
   // console.log(newURL)
 
