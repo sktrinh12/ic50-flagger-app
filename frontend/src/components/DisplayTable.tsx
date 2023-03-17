@@ -72,11 +72,11 @@ export default function DisplayTable() {
   // PARAMETERS
   const [flag, setFlag] = useState<number>(0)
   const [editFlag, setEditFlag] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
   const [columnLoading, setColumnLoading] = useState<(string | null)[]>([])
   // MUI TABLE
-  const [page, setPage] = React.useState(0)
-  const [rowsPerPage, setRowsPerPage] = React.useState(10)
+  const [page, setPage] = React.useState<number>(0)
+  const [rowsPerPage, setRowsPerPage] = React.useState<number>(100)
   const [filterFn, setFilterFn] = useState({
     fn: (items: TableDataType[]) => {
       return items
@@ -100,10 +100,6 @@ export default function DisplayTable() {
   // console.log(urlParamsObj)
   // console.log(urlParams.toString())
   let newURL = `${rootURL.replace('compound_id=', '')}${urlParams.toString()}`
-
-  if (urlParamsObj.type === 'msr_data') {
-    newURL = `${newURL}&n_limit=${nLimit !== 0 ? nLimit : 20}`
-  }
 
   let dtype = urlParamsObj['type']
   let stype = urlParamsObj['sql_type']
