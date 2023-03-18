@@ -27,6 +27,36 @@ const inputStyles = {
 const FilterTab = ({ dtype, open, handleSearchFilter }) => {
   return (
     <Drawer open={open} sx={styles} variant='persistent' anchor='right'>
+      <>
+        <Toolbar style={inputStyles}>
+          <Input
+            label='Variant'
+            className={'width: 25%'}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            onChange={handleSearchFilter('VARIANT')}
+          />
+        </Toolbar>
+        <Toolbar style={inputStyles}>
+          <Input
+            label='CRO'
+            className={'width: 25%'}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            onChange={handleSearchFilter('CRO')}
+          />
+        </Toolbar>
+      </>
       {/cellular_all|cellular_stats/.test(dtype) && (
         <>
           <Toolbar style={inputStyles}>
@@ -41,20 +71,6 @@ const FilterTab = ({ dtype, open, handleSearchFilter }) => {
                 ),
               }}
               onChange={handleSearchFilter('CELL_LINE')}
-            />
-          </Toolbar>
-          <Toolbar style={inputStyles}>
-            <Input
-              label='Variant'
-              className={'width: 25%'}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              onChange={handleSearchFilter('VARIANT')}
             />
           </Toolbar>
           <Toolbar style={inputStyles}>
@@ -87,20 +103,6 @@ const FilterTab = ({ dtype, open, handleSearchFilter }) => {
                 ),
               }}
               onChange={handleSearchFilter('TARGET')}
-            />
-          </Toolbar>
-          <Toolbar style={inputStyles}>
-            <Input
-              label='Variant'
-              className={'width: 25%'}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              onChange={handleSearchFilter('VARIANT')}
             />
           </Toolbar>
           <Toolbar style={inputStyles}>
