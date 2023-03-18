@@ -14,6 +14,7 @@ import Box from '@mui/material/Box'
 import { sortedRowInformation, getComparator } from './TableSortFunctions'
 import { PurpleColour } from './Colour'
 import FilterTab from './FilterTab'
+import GoHomeIcon from './GoHomeIcon'
 
 interface TableDataType {
   ID: number
@@ -55,7 +56,8 @@ interface PostDataType {
 }
 
 export default function DisplayTable() {
-  const { REACT_APP_BACKEND_URL } = process.env || 'http://localhost:8000'
+  const REACT_APP_BACKEND_URL =
+    process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'
   const [tableData, setTableData] = useState<TableDataType[]>([
     {
       ID: 0,
@@ -310,7 +312,10 @@ export default function DisplayTable() {
   }
 
   // sort the columns based on a key (field name)
-  const handleRequestSort = (property: keyof TableDataType): void => {
+  const handleRequestSort = (
+    property: keyof TableDataType,
+    event: React.MouseEvent
+  ): void => {
     const isAsc = orderBy === property && order === 'asc'
     setOrder(isAsc ? 'desc' : 'asc')
     setOrderBy(property)
@@ -424,6 +429,17 @@ export default function DisplayTable() {
               />
             </Paper>
           </form>
+
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              p: 1,
+            }}
+          >
+            <GoHomeIcon />
+          </Box>
         </Box>
       )}
     </>
