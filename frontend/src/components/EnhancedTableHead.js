@@ -17,7 +17,7 @@ export default function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort, type, handleFilterIconClick } = props
 
   const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property)
+    onRequestSort(property, event)
   }
   var DataFields = null
 
