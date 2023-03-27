@@ -96,6 +96,7 @@ sql_cmds = {
         max(t0.variant) AS VARIANT,
         max(t0.cell_incubation_hr) AS CELL_INCUBATION_HR,
         max(t0.pct_serum) AS PCT_SERUM,
+        max(t0.threed) AS THREED,
         max(t0.geomean_nM) AS GEOMEAN,
         max(t0.nm_minus_3_stdev) AS MINUS_3STDEV,
         max(t0.nm_plus_3_stdev) AS PLUS_3STDEV,
@@ -114,6 +115,8 @@ sql_cmds = {
             t1.cell_incubation_hr,
             t1.pct_serum,
             t1.modifier,
+            t1.threed,
+            t1.treatment,
             t2.flag,
         round(stddev(t1.ic50) OVER(PARTITION BY t1.compound_id,
             t1.cro,
@@ -122,6 +125,8 @@ sql_cmds = {
             t1.variant,
             t1.cell_incubation_hr,
             t1.pct_serum,
+            t1.threed,
+            t1.treatment,
             t1.modifier,
             t2.flag) * 1000000000, 2) AS stdev,
         round((to_char(power(10, avg(log(10, t1.ic50))
@@ -132,6 +137,8 @@ sql_cmds = {
                 t1.variant,
                 t1.cell_incubation_hr,
                 t1.pct_serum,
+                t1.threed,
+                t1.treatment,
                 t1.modifier,
                 t2.flag)), '99999.99EEEE') * 1000000000), 1) AS geomean_nM,
         round(ABS(power(10, AVG(log(10, t1.ic50))
@@ -142,6 +149,8 @@ sql_cmds = {
                 t1.variant,
                 t1.cell_incubation_hr,
                 t1.pct_serum,
+                t1.threed,
+                t1.treatment,
                 t1.modifier,
                 t2.flag))* 1000000000
                 - (3 * STDDEV(t1.ic50)
@@ -152,6 +161,8 @@ sql_cmds = {
                     t1.variant,
                     t1.cell_incubation_hr,
                     t1.pct_serum,
+                    t1.threed,
+                    t1.treatment,
                     t1.modifier,
                     t2.flag) * 1000000000)), 3) AS nm_minus_3_stdev,
         round(ABS(power(10, AVG(log(10, t1.ic50))
@@ -162,6 +173,8 @@ sql_cmds = {
                 t1.variant,
                 t1.cell_incubation_hr,
                 t1.pct_serum,
+                t1.threed,
+                t1.treatment,
                 t1.modifier,
                 t2.flag))* 1000000000
                 + (3 * STDDEV(t1.ic50)
@@ -172,6 +185,8 @@ sql_cmds = {
                         t1.variant,
                         t1.cell_incubation_hr,
                         t1.pct_serum,
+                        t1.threed,
+                        t1.treatment,
                         t1.modifier,
                         t2.flag) * 1000000000)), 3) AS nM_plus_3_stdev,
                     round(ABS(power(10, AVG(log(10, t1.ic50))
@@ -182,6 +197,8 @@ sql_cmds = {
             t1.variant,
             t1.cell_incubation_hr,
             t1.pct_serum,
+            t1.threed,
+            t1.treatment,
             t1.modifier,
             t2.flag))* 1000000000
                 - (3 * VARIANCE(t1.ic50)
@@ -192,6 +209,8 @@ sql_cmds = {
                         t1.variant,
                         t1.cell_incubation_hr,
                         t1.pct_serum,
+                        t1.threed,
+                        t1.treatment,
                         t1.modifier,
                         t2.flag) * 1000000000)), 3) AS nm_minus_3_var,
         round(abs(power(10, AVG(log(10, t1.ic50))
@@ -202,6 +221,8 @@ sql_cmds = {
                 t1.variant,
                 t1.cell_incubation_hr,
                 t1.pct_serum,
+                t1.threed,
+                t1.treatment,
                 t1.modifier,
                 t2.flag))* 1000000000
                 + (3 * VARIANCE(t1.ic50)
@@ -212,6 +233,8 @@ sql_cmds = {
                         t1.variant,
                         t1.cell_incubation_hr,
                         t1.pct_serum,
+                        t1.threed,
+                        t1.treatment,
                         t1.modifier,
                         t2.flag) * 1000000000)), 3) AS nM_plus_3_var,
         count(t1.ic50) OVER(PARTITION BY t1.compound_id,
@@ -221,6 +244,8 @@ sql_cmds = {
             t1.variant,
             t1.cell_incubation_hr,
             t1.pct_serum,
+            t1.threed,
+            t1.treatment,
             t1.modifier,
             t2.flag) AS n,
         count(t1.ic50) OVER(PARTITION BY t1.compound_id,
@@ -229,7 +254,9 @@ sql_cmds = {
             t1.cell_line,
             t1.variant,
             t1.cell_incubation_hr,
-            t1.pct_serum) AS m
+            t1.pct_serum,
+            t1.threed,
+            t1.treatment) AS m
     FROM
         ds3_userdata.su_cellular_growth_drc t1
         LEFT OUTER JOIN ds3_userdata.CELLULAR_IC50_FLAGS t2 ON t1.PID = t2.PID
@@ -247,7 +274,9 @@ sql_cmds = {
         t0.cell_line,
         t0.variant,
         t0.cell_incubation_hr,
-        t0.pct_serum
+        t0.pct_serum,
+        t0.threed,
+        t0.treatment
     """,
     "GEOMEAN_CELL_ALL": """
     SELECT
@@ -527,3 +556,60 @@ sql_cmds = {
                ON t1.pid = t2.pid) t3
             """,
 }
+
+
+def gen_multi_cmpId_sql_template_cell(mdict):
+    select_columns = [
+        "t1.CRO",
+        "t1.ASSAY_TYPE",
+        "t1.CELL",
+        "t1.VARIANT",
+        "t1.INC_HR",
+        "t1.PCT_SERUM",
+    ]
+
+    # print(mdict)
+    cmp_ids = mdict["COMPOUND_ID"].split(",")
+    where_conditions = []
+
+    for i, cmp_id in enumerate(cmp_ids):
+        where_conditions.append(f"t{i+1}.COMPOUND_ID = '{cmp_id}'")
+
+    where_conditions.append(
+        f"""
+            t1.CRO = '{ mdict['CRO'] }'
+            AND t1.ASSAY_TYPE = '{ mdict['ASSAY_TYPE'] }'
+            AND t1.INC_HR = { mdict['CELL_INCUBATION_HR'] }
+            AND t1.PCT_SERUM = { mdict['PCT_SERUM'] }
+            """
+    )
+    where_clause = " AND ".join(where_conditions)
+
+    join_clause = ""
+    join_clause = ""
+    for i, cmp_id in enumerate(cmp_ids):
+        if i > 0:
+            join_clause += f""" INNER JOIN SU_CELLULAR_DRC_STATS t{i+1} ON
+                t{i+1}.CRO = t{i}.CRO
+                AND t{i+1}.ASSAY_TYPE = t{i}.ASSAY_TYPE
+                AND t{i+1}.INC_HR = t{i}.INC_HR
+                AND t{i+1}.PCT_SERUM = t{i}.PCT_SERUM
+                """
+        else:
+            join_clause += f" SU_CELLULAR_DRC_STATS t{i+1}"
+
+    select_clause = ", ".join(
+        [
+            f"t{i+1}.COMPOUND_ID COMPOUND_ID_{i+1}, t{i+1}.GEO_NM GEO_NM_{i+1}"
+            if i > 0
+            else f"t{i+1}.COMPOUND_ID COMPOUND_ID_1, t{i+1}.GEO_NM GEO_NM_1"
+            for i in range(len(cmp_ids))
+        ]
+    )
+    select_clause += ", " + ", ".join(select_columns)
+
+    return f"""SELECT {select_clause}
+                    FROM {join_clause}
+                    WHERE {where_clause}
+                    ORDER BY CELL, VARIANT
+                    """
