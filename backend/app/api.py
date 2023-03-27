@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
+from fastapi_utils.session import FastAPISessionMaker
+from fastapi_utils.tasks import repeat_every
 from .db import generic_oracle_query, generate_sql_stmt
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas import GetDataSchema
@@ -6,6 +8,7 @@ from fastapi import Query
 from typing import List
 from .functions import get_msr_stats
 from .redis_connection import redis_conn
+from .tasks import update_redis_cache, tasks_freq, tasks_infreq
 from json import loads
 
 
@@ -43,7 +46,44 @@ def read_root():
 @app.get("/compound_ids")
 def get_compound_ids():
     compound_ids = redis_conn.lrange("compound_ids", 0, -1)
-    return {"compound_ids": list(map(lambda x: loads(x.decode("utf-8")), compound_ids))}
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), compound_ids))}
+
+
+# get redis cro
+@app.get("/cros")
+def get_cros():
+    cros = redis_conn.lrange("cros", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), cros))}
+
+
+@app.get("/cell_assay_type")
+def get_cell_assay_type():
+    cell_assay_type = redis_conn.lrange("cell_assay_type", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), cell_assay_type))}
+
+
+@app.get("/cell_line")
+def get_cell_line():
+    cell_line = redis_conn.lrange("cell_line", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), cell_line))}
+
+
+@app.get("/cell_incubation_hr")
+def get_cell_incubation_hr():
+    cell_incubation_hr = redis_conn.lrange("cell_incub", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), cell_incubation_hr))}
+
+
+@app.get("/pct_serum")
+def get_pct_serum():
+    pct_serum = redis_conn.lrange("pct_serum", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), pct_serum))}
+
+
+@app.get("/variant")
+def get_variant():
+    variant = redis_conn.lrange("variant", 0, -1)
+    return {"data": list(map(lambda x: loads(x.decode("utf-8")), variant))}
 
 
 # fetch table data endpoint
@@ -105,3 +145,17 @@ async def update_data(payload: Request, sql_type: str, type: str, user_name: str
         STATUS_CODE = status.HTTP_400_BAD_REQUEST
     post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE) | result
     return post_result
+
+
+@app.on_event("startup")
+@repeat_every(seconds=60 * 60 * 2)  # every 2 hours
+def update_redis_cach_freq():
+    for tk in tasks_freq:
+        update_redis_cache(tk[0], tk[1])
+
+
+@app.on_event("startup")
+@repeat_every(seconds=60 * 60 * 5)  # every 5 hours
+def update_redis_cach_infreq():
+    for tk in tasks_infreq:
+        update_redis_cache(tk[0], tk[1])
