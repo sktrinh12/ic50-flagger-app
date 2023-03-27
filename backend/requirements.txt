@@ -3,5 +3,5 @@ uvicorn
 requests
 cx_Oracle
 scipy
-celery
 redis
+fastapi-utils
