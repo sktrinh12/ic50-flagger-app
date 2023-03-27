@@ -1,6 +1,6 @@
 from .oracle_class import OracleConnection, cx_Oracle
 from .credentials import cred_dct
-from .sql import sql_cmds, field_names_dct
+from .sql import sql_cmds, field_names_dct, gen_multi_cmpId_sql_template_cell
 from os import getenv
 import re
 
@@ -77,6 +77,9 @@ def generate_sql_stmt(payload):
                                 re.IGNORECASE) or payload["CELL_INCUBATION_HR"] is None else f"= {payload['CELL_INCUBATION_HR']}"}
                       AND t3.VARIANT {'IS NULL' if re.search('null', payload["VARIANT"], re.IGNORECASE) else f"= '{payload['VARIANT']}'"}
                       """
+        elif payload["TYPE"].upper() == "GMEAN_CMPR":
+            sql_stmt = gen_multi_cmpId_sql_template_cell(payload)
+
         elif payload["TYPE"] == "MSR_DATA":
             if payload["ATP_CONC_UM"]:
                 param1 = payload["TARGET"]
@@ -174,7 +177,7 @@ def generic_oracle_query(sql_stmt, payload):
             cred_dct["SID"],
         ) as con:
 
-            if ENV == "DEV":
+            if ENV == "DEV" or ENV is None:
                 print("-" * 35)
                 print(sql_stmt)
                 print("-" * 35)
@@ -183,7 +186,10 @@ def generic_oracle_query(sql_stmt, payload):
                 if payload["SQL_TYPE"].upper() == "UPDATE":
                     res = insert_update_flag(con.cursor(), payload, sql_stmt)
                     return {"STATUS": f'{payload["PID"]} row updated', "RETURN": res}
-                elif payload["SQL_TYPE"].upper() == "GET":
+                elif (
+                    payload["SQL_TYPE"].upper() == "GET"
+                    and payload["TYPE"] != "GMEAN_CMPR"
+                ):
                     cursor.execute(sql_stmt)
                     result = extract_data(cursor.fetchall(), payload)
                     if ENV == "DEV":
