@@ -570,33 +570,26 @@ def gen_multi_cmpId_sql_template_cell(mdict):
 
     # print(mdict)
     cmp_ids = mdict["COMPOUND_ID"].split(",")
-    where_conditions = []
-
+    join_clause = ""
     for i, cmp_id in enumerate(cmp_ids):
-        where_conditions.append(f"t{i+1}.COMPOUND_ID = '{cmp_id}'")
-
-    where_conditions.append(
-        f"""
-            t1.CRO = '{ mdict['CRO'] }'
-            AND t1.ASSAY_TYPE = '{ mdict['ASSAY_TYPE'] }'
-            AND t1.INC_HR = { mdict['CELL_INCUBATION_HR'] }
-            AND t1.PCT_SERUM = { mdict['PCT_SERUM'] }
+        join_clause += f"""
+            {'FULL OUTER JOIN' if i>0 else '' } (
+            SELECT DISTINCT COMPOUND_ID, GEO_NM, CRO, ASSAY_TYPE, CELL, VARIANT, INC_HR, PCT_SERUM
+            FROM SU_CELLULAR_DRC_STATS
+            WHERE COMPOUND_ID = '{cmp_id}' AND CRO = '{ mdict["CRO"] }' AND
+            ASSAY_TYPE = '{ mdict["ASSAY_TYPE"] }' {'AND PCT_SERUM = ' +
+            str(mdict["PCT_SERUM"]) if mdict["PCT_SERUM"] is not None else ''}
+            ) t{i+1}
             """
-    )
-    where_clause = " AND ".join(where_conditions)
-
-    join_clause = ""
-    join_clause = ""
-    for i, cmp_id in enumerate(cmp_ids):
         if i > 0:
-            join_clause += f""" INNER JOIN SU_CELLULAR_DRC_STATS t{i+1} ON
-                t{i+1}.CRO = t{i}.CRO
-                AND t{i+1}.ASSAY_TYPE = t{i}.ASSAY_TYPE
-                AND t{i+1}.INC_HR = t{i}.INC_HR
-                AND t{i+1}.PCT_SERUM = t{i}.PCT_SERUM
-                """
-        else:
-            join_clause += f" SU_CELLULAR_DRC_STATS t{i+1}"
+            join_clause += f"""
+            ON t{i+1}.CRO = t{i}.CRO
+            AND t{i+1}.CELL = t{i}.CELL
+            AND t{i+1}.VARIANT = t{i}.VARIANT
+            AND t{i+1}.ASSAY_TYPE = t{i}.ASSAY_TYPE
+            AND t{i+1}.INC_HR = t{i}.INC_HR
+            {f'AND t{i+1}.PCT_SERUM = t{i}.PCT_SERUM' if mdict["PCT_SERUM"] is not None else ''}
+            """
 
     select_clause = ", ".join(
         [
@@ -609,7 +602,9 @@ def gen_multi_cmpId_sql_template_cell(mdict):
     select_clause += ", " + ", ".join(select_columns)
 
     return f"""SELECT {select_clause}
-                    FROM {join_clause}
-                    WHERE {where_clause}
-                    ORDER BY CELL, VARIANT
+               FROM {join_clause}
+               ORDER BY  {', '.join([f'COMPOUND_ID_{j}'
+                            for j in range(1, len(cmp_ids)+1)]) + ','
+                            if len(cmp_ids) > 1 else ''}
+                CELL, VARIANT
                     """
