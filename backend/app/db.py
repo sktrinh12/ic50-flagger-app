@@ -5,7 +5,7 @@ from os import getenv
 import re
 
 DB_TYPE = getenv("DB_TYPE")
-ENV = getenv("ENV")
+ENV = getenv("ENV", "DEV")
 print(f"env: {ENV}")
 
 
@@ -198,6 +198,8 @@ def generic_oracle_query(sql_stmt, payload):
                 else:
                     cursor.execute(sql_stmt)
                     result = cursor.fetchall()
+                    if ENV == "DEV":
+                        print(result)
                     return result
     except Exception as e:
         print(f"ERROR {e}")
