@@ -67,6 +67,8 @@ pipeline {
         }
         
         stage('docker build frontend') {
+            when { expression { params.BUILD_FRONTEND.toString().toLowerCase() == 'true' }
+            }
             steps{
                 sh( label: 'Docker Build Frontend', script:
                 '''
@@ -86,11 +88,13 @@ pipeline {
     
         stage('docker push to ecr') {
             steps {
-                sh(label: 'ECR docker push frontend', script:
-                '''
-                docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
-                ''', returnStdout: true
-                )
+                if (BUILD_FRONTEND) {
+                    sh(label: 'ECR docker push frontend', script:
+                    '''
+                    docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
+                    ''', returnStdout: true
+                    )
+                }
                 sh(label: 'ECR docker push backend', script:
                 '''
                 docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend:latest
@@ -116,7 +120,7 @@ pipeline {
                         }
             }
             steps{
-                                container('helm') {
+                container('helm') {
                 sh script: '''
                 #!/bin/bash
                 cd $WORKSPACE
@@ -126,7 +130,11 @@ pipeline {
                   echo "Namespace $NAMESPACE already exists"
                   ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
                   sleep 5
-                  ./kubectl rollout restart deploy/geomean-flagger-frontend-deploy -n $NAMESPACE
+                  if $BUILD_FRONTEND;  then
+                      ./kubectl rollout restart deploy/geomean-flagger-frontend-deploy -n $NAMESPACE
+                  else
+                     echo "Skipping frontend rollout"
+                  fi
                 else
                   echo "Namespace $NAMESPACE does not exist; deploy using helm"
                   ./kubectl create ns $NAMESPACE
@@ -140,13 +148,17 @@ pipeline {
                   --set containers.ports.containerPort=8000 --set app=geomean \
                   --set terminationGracePeriodSeconds=10 --set service.type=LoadBalancer
                   sleep 2
-                  helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
-                  --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-frontend \
-                  --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
-                  --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
-                  --set image.tag=latest --set containers.name=react \
-                  --set containers.ports.containerPort=80 --set app=geomean \
-                  --set terminationGracePeriodSeconds=10 --set service.type=LoadBalancer
+                  if $BUILD_FRONTEND;  then
+                      helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
+                      --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-frontend \
+                      --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
+                      --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
+                      --set image.tag=latest --set containers.name=react \
+                      --set containers.ports.containerPort=80 --set app=geomean \
+                      --set terminationGracePeriodSeconds=10 --set service.type=LoadBalancer
+                  else
+                     echo "Skipping frontend helm build"
+                  fi
                 fi
                 '''
 
