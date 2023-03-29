@@ -20,7 +20,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost",
     "http://geomean.frontend.kinnate",
-    "http://geomean.frontend.prod.kinnate",
+    "http://msr.apps.kinnate",
     "http://msr-viz.kinnate",
 ]
 
