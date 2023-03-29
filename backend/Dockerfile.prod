@@ -2,11 +2,11 @@ ARG PYTHON_VERSION=3.9
 
 FROM debian:buster AS client
 
-ARG ORACLE_VERSION=12.2.0.1.0
-ARG OR_SHORT_VER=12201
+ARG ORACLE_VERSION=19.18.0.0.0
+ARG OR_SHORT_VER=1918000
 
 WORKDIR /tmp
-ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_12_2
+ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_19_18
 ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}.zip
 ENV DEBIAN_FRONTEND=noninteractive
@@ -60,8 +60,7 @@ RUN apt-get update \
 	&& echo ${ORACLE_HOME} > /etc/ld.so.conf.d/oracle.conf \
 	&& mkdir -p ${TNS_ADMIN} \
 	&& ldconfig \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-	&& echo "${USERNAME}  ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/${USERNAME}"
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR ${HOME}
 USER ${USERNAME}
