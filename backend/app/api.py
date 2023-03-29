@@ -22,6 +22,7 @@ origins = [
     "http://geomean.frontend.kinnate",
     "http://msr.apps.kinnate",
     "http://msr-viz.kinnate",
+    "http://compound-comparison.apps.kinnate",
 ]
 
 app.add_middleware(
