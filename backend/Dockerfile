@@ -68,5 +68,5 @@ RUN apt-get update \
 
 WORKDIR ${HOME}
 USER ${USERNAME}
-EXPOSE 8000
+EXPOSE 80
 CMD ["python", "main.py"]
