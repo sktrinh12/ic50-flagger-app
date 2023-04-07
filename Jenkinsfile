@@ -5,6 +5,9 @@ pipeline {
             inheritFrom 'jenkins-slave'
         }
     }
+    parameters {
+				booleanParam description: 'build the frontend', name: 'BUILD_FRONTEND'
+		}
     environment{
         AWSID = credentials('AWSID')
         GITHUB_PAT = credentials('github-kinnate-secret-text')
@@ -17,7 +20,7 @@ pipeline {
         REDIS_PASSWD = credentials('REDIS_PASSWD')
         DOCKER_CONFIG = "${WORKSPACE}/docker.config"
         ENV = 'PROD'
-        NAMESPACE = 'gmeanflag'
+        NAMESPACE = 'apps'
         APP_NAME = 'geomean-ic50-flagger'
         AWS_PAGER = ''
     }
@@ -76,7 +79,7 @@ pipeline {
                 set -x
                 docker build \
                 --no-cache --network=host \
-                --build-arg REACT_APP_BACKEND_URL=http://geomean.backend.kinnate:8000 \
+                --build-arg REACT_APP_BACKEND_URL=http://geomean.backend.kinnate \
                 --build-arg REACT_APP_FRONTEND_URL=http://geomean.frontend.kinnate \
                 -t $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest \
                 -f $WORKSPACE/${APP_NAME}/frontend/Dockerfile.prod .
@@ -88,7 +91,7 @@ pipeline {
     
         stage('docker push to ecr') {
             steps {
-                if (BUILD_FRONTEND) {
+                if (params.BUILD_FRONTEND) {
                     sh(label: 'ECR docker push frontend', script:
                     '''
                     docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
@@ -130,7 +133,7 @@ pipeline {
                   echo "Namespace $NAMESPACE already exists"
                   ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
                   sleep 5
-                  if $BUILD_FRONTEND;  then
+                  if ${params.BUILD_FRONTEND};  then
                       ./kubectl rollout restart deploy/geomean-flagger-frontend-deploy -n $NAMESPACE
                   else
                      echo "Skipping frontend rollout"
@@ -141,21 +144,21 @@ pipeline {
                   git clone https://github.com/sktrinh12/helm-basic-app-chart.git
                   cd helm-basic-app-chart
                   helm install k8sapp-geomean-flagger-backend . --set service.namespace=$NAMESPACE \
-                  --set service.port=8000 --set service.targetPort=8000 --set nameOverride=geomean-flagger-backend \
+                  --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-backend \
                   --set fullnameOverride=geomean-flagger-backend --set namespace=${NAMESPACE} \
                   --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend \
                   --set image.tag=latest --set containers.name=fastapi \
-                  --set containers.ports.containerPort=8000 --set app=geomean \
-                  --set terminationGracePeriodSeconds=10 --set service.type=LoadBalancer
+                  --set containers.ports.containerPort=80 --set app=geomean \
+                  --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
                   sleep 2
-                  if $BUILD_FRONTEND;  then
+                  if ${params.BUILD_FRONTEND};  then
                       helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
                       --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-frontend \
                       --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
                       --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
                       --set image.tag=latest --set containers.name=react \
                       --set containers.ports.containerPort=80 --set app=geomean \
-                      --set terminationGracePeriodSeconds=10 --set service.type=LoadBalancer
+                      --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
                   else
                      echo "Skipping frontend helm build"
                   fi
