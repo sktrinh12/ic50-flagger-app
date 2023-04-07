@@ -9,6 +9,7 @@ WORKDIR /root
 ARG ORACLE_ZIP_INTERNAL_FOLDER=instantclient_19_18
 ENV CLIENT_ZIP=instantclient-basiclite-linux.x64-${ORACLE_VERSION}dbru.zip
 ENV SDK_ZIP=instantclient-sdk-linux.x64-${ORACLE_VERSION}dbru.zip
+ENV DEBIAN_FRONTEND=noninteractive
 
 # https://download.oracle.com/otn_software/linux/instantclient/1917000/instantclient-sdk-linux.x64-19.17.0.0.0dbru.zip
 # https://download.oracle.com/otn_software/linux/instantclient/1917000/instantclient-basiclite-linux.x64-19.17.0.0.0dbru.zip
@@ -24,6 +25,7 @@ RUN unzip ${CLIENT_ZIP} && unzip ${SDK_ZIP}
 RUN mv ${ORACLE_ZIP_INTERNAL_FOLDER} oracle
 
 FROM python:${PYTHON_VERSION}
+
 ARG USERNAME=backend
 ARG ORACLE_HOST
 ARG ORACLE_USER
