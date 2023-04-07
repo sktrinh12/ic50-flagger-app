@@ -6,7 +6,7 @@ pipeline {
         }
     }
     parameters {
-				booleanParam description: 'build the frontend', name: 'BUILD_FRONTEND'
+				booleanParam defaultValue: false, description: 'build the frontend', name: 'BUILD_FRONTEND'
 		}
     environment{
         AWSID = credentials('AWSID')
@@ -91,13 +91,13 @@ pipeline {
     
         stage('docker push to ecr') {
             steps {
-                if (params.BUILD_FRONTEND) {
-                    sh(label: 'ECR docker push frontend', script:
-                    '''
+                sh(label: 'ECR docker push frontend', script:
+                '''
+                if [[ "$BUILD_FRONTEND" == true ]]; then
                     docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
-                    ''', returnStdout: true
-                    )
-                }
+                fi 
+                ''', returnStdout: true
+                )
                 sh(label: 'ECR docker push backend', script:
                 '''
                 docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend:latest
@@ -133,7 +133,7 @@ pipeline {
                   echo "Namespace $NAMESPACE already exists"
                   ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
                   sleep 5
-                  if ${params.BUILD_FRONTEND};  then
+                  if [[ "$BUILD_FRONTEND" == true ]]; then
                       ./kubectl rollout restart deploy/geomean-flagger-frontend-deploy -n $NAMESPACE
                   else
                      echo "Skipping frontend rollout"
@@ -151,7 +151,7 @@ pipeline {
                   --set containers.ports.containerPort=80 --set app=geomean \
                   --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
                   sleep 2
-                  if ${params.BUILD_FRONTEND};  then
+                  if [[ "$BUILD_FRONTEND" == true ]]; then
                       helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
                       --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-frontend \
                       --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
