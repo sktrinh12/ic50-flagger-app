@@ -50,9 +50,9 @@ ENV TNS_ADMIN ${ORACLE_HOME}/network/admin
 VOLUME ["${TNS_ADMIN}"]
 
 RUN mkdir -p ${HOME}/app
-ADD /geomean-ic50-flagger/backend/main.py ${HOME} 
-ADD /geomean-ic50-flagger/backend/requirements.txt ${HOME} 
-ADD /geomean-ic50-flagger/backend/app ${HOME}/app
+ADD /backend/main.py ${HOME} 
+ADD /backend/requirements.txt ${HOME} 
+ADD /backend/app ${HOME}/app
 RUN pip install -r ${HOME}/requirements.txt
 COPY --from=client /tmp/oracle ${ORACLE_HOME}
 RUN apt-get update \
