@@ -20,9 +20,11 @@ origins = [
     "http://localhost:3000",
     "http://localhost",
     "http://geomean.frontend.kinnate",
-    "http://msr.apps.kinnate",
     "http://msr-viz.kinnate",
-    "http://compound-comparison.apps.kinnate",
+    "https://compound-comparison.kinnate.net",
+    "http://compound.comparison.kinnate",
+    "https://msr.kinnate.net",
+    "https://geomean.kinnate.net",
 ]
 
 app.add_middleware(
@@ -148,15 +150,15 @@ async def update_data(payload: Request, sql_type: str, type: str, user_name: str
     return post_result
 
 
-@app.on_event("startup")
-@repeat_every(seconds=60 * 60 * 2)  # every 2 hours
-def update_redis_cach_freq():
-    for tk in tasks_freq:
-        update_redis_cache(tk[0], tk[1])
+# @app.on_event("startup")
+# @repeat_every(seconds=60 * 60 * 2)  # every 2 hours
+# def update_redis_cach_freq():
+#     for tk in tasks_freq:
+#         update_redis_cache(tk[0], tk[1])
 
 
-@app.on_event("startup")
-@repeat_every(seconds=60 * 60 * 5)  # every 5 hours
-def update_redis_cach_infreq():
-    for tk in tasks_infreq:
-        update_redis_cache(tk[0], tk[1])
+# @app.on_event("startup")
+# @repeat_every(seconds=60 * 60 * 5)  # every 5 hours
+# def update_redis_cach_infreq():
+#     for tk in tasks_infreq:
+#         update_redis_cache(tk[0], tk[1])
