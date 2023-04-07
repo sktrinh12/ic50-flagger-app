@@ -1,4 +1,5 @@
 # field names and snippets of sql text for backend calls
+import re
 
 field_names_dct = {
     "cellular_stats_fields": [
@@ -559,52 +560,148 @@ sql_cmds = {
 
 
 def gen_multi_cmpId_sql_template_cell(mdict):
-    select_columns = [
-        "t1.CRO",
-        "t1.ASSAY_TYPE",
-        "t1.CELL",
-        "t1.VARIANT",
-        "t1.INC_HR",
-        "t1.PCT_SERUM",
-    ]
-
     # print(mdict)
     cmp_ids = mdict["COMPOUND_ID"].split(",")
+    num_items = len(cmp_ids)
+    cte_template = """SELECT {cmpid_gmean_select},
+        {tbl_1}.CRO,
+        {tbl_1}.ASSAY_TYPE,
+        {tbl_1}.CELL,
+        {tbl_1}.VARIANT,
+        {tbl_1}.INC_HR,
+        {tbl_1}.PCT_SERUM
+          FROM {tbl_1}
+          LEFT OUTER JOIN {tbl_0}
+          ON {tbl_1}.CRO = {tbl_0}.CRO
+        AND {tbl_1}.CELL = {tbl_0}.CELL
+        AND {tbl_1}.VARIANT = {tbl_0}.VARIANT
+        AND {tbl_1}.ASSAY_TYPE = {tbl_0}.ASSAY_TYPE
+        AND {tbl_1}.INC_HR = {tbl_0}.INC_HR
+        AND {tbl_1}.PCT_SERUM = {tbl_0}.PCT_SERUM
+        """
+
     join_clause = ""
+    last_clause = ""
+    cte_clause = ""
+    cte_select_stmt = ""
+    cnt = 0
+
+    select_clause_lst = []
+    select_clause_enum_lst = []
+
+    # create individual with cte tables for each compound id
     for i, cmp_id in enumerate(cmp_ids):
-        join_clause += f"""
-            {'FULL OUTER JOIN' if i>0 else '' } (
-            SELECT DISTINCT COMPOUND_ID, GEO_NM, CRO, ASSAY_TYPE, CELL, VARIANT, INC_HR, PCT_SERUM
-            FROM SU_CELLULAR_DRC_STATS
-            WHERE COMPOUND_ID = '{cmp_id}' AND CRO = '{ mdict["CRO"] }' AND
-            ASSAY_TYPE = '{ mdict["ASSAY_TYPE"] }' {'AND PCT_SERUM = ' +
-            str(mdict["PCT_SERUM"]) if mdict["PCT_SERUM"] is not None else ''}
-            ) t{i+1}
-            """
-        if i > 0:
+        if i < num_items:
             join_clause += f"""
-            ON t{i+1}.CRO = t{i}.CRO
-            AND t{i+1}.CELL = t{i}.CELL
-            AND t{i+1}.VARIANT = t{i}.VARIANT
-            AND t{i+1}.ASSAY_TYPE = t{i}.ASSAY_TYPE
-            AND t{i+1}.INC_HR = t{i}.INC_HR
-            {f'AND t{i+1}.PCT_SERUM = t{i}.PCT_SERUM' if mdict["PCT_SERUM"] is not None else ''}
+                {f', t{i+1} AS ' if i>0 else f' t{i+1} AS' } (
+                SELECT DISTINCT COMPOUND_ID, GEO_NM, CRO, ASSAY_TYPE, CELL, VARIANT, INC_HR, PCT_SERUM
+                FROM SU_CELLULAR_DRC_STATS
+                WHERE COMPOUND_ID = '{cmp_id}'
+                AND CRO = '{ mdict["CRO"] }'
+                AND ASSAY_TYPE = '{ mdict["ASSAY_TYPE"] }'
+                AND INC_HR = { mdict["CELL_INCUBATION_HR"] }
+                {'AND PCT_SERUM = ' + str(mdict["PCT_SERUM"]) if mdict["PCT_SERUM"] is not None else ''}
+                )
+                """
+        # select column names w/o alias
+        select_clause_lst.append(
+            f"{{tbl_prefix}}{i+1}.COMPOUND_ID COMPOUND_ID_{i+1}, {{tbl_prefix}}{i+1}.GEO_NM GEO_NM_{i+1}"
+        )
+        # select column names /w alias
+        select_clause_enum_lst.append(
+            f"{{tbl_prefix}}{{nbr}}.COMPOUND_ID_{i+1}, {{tbl_prefix}}{{nbr}}.GEO_NM_{i+1}"
+        )
+
+    # equivalent to ceil() without math library, add +1 since starting at 1
+    cte_loop_count = -int(-(num_items / 2) // 1) + 1
+
+    if num_items < 4:
+        cte_loop_count -= 1
+    else:
+        cte_loop_count += 1
+
+    # create cte inner subqueries
+    for i in range(1, cte_loop_count):
+        cnt = i
+        if i > 1:
+            select_clause_tmp_lst = select_clause_enum_lst[: i + 1]
+            select_clause_edit_lst = list(
+                map(
+                    lambda x: x.format(tbl_prefix="cte_", nbr=i - 1),
+                    select_clause_tmp_lst[:i],
+                )
+            )
+        else:
+            select_clause_tmp_lst = select_clause_lst[: i + 1]
+            select_clause_edit_lst = list(
+                map(lambda x: x.format(tbl_prefix="t"), select_clause_tmp_lst[:i])
+            )
+        # append last one which should be a `t` prefixed table to list
+        select_clause_edit_lst += list(
+            map(
+                lambda x: x.format(tbl_prefix="t", nbr=i + 1), select_clause_tmp_lst[i:]
+            )
+        )
+        # alias the last compound_id and geo_nm columns
+        if i > 1:
+            last_elem = select_clause_edit_lst[-1]
+            cmp_el, gm_el = last_elem.split(",")
+            new_cmp_el = cmp_el[:-2]
+            new_cmp_el += f" COMPOUND_ID_{i+1}"
+            new_gm_el = gm_el[:-2]
+            new_gm_el += f" GEO_NM_{i+1}"
+            new_last_elem = f"{new_cmp_el}, {new_gm_el}"
+            select_clause_edit_lst[-1] = new_last_elem
+            # print(new_last_elem)
+        cte_select_stmt = ", ".join(select_clause_edit_lst)
+        cte_clause += f""", cte_{i} as (
+        {cte_template.format(tbl_1=f"{'cte_' if i > 1 else 't'}{i-1 if i > 1 else i}",
+                             tbl_0=f"t{i+1}",
+                             cmpid_gmean_select=cte_select_stmt)
+        })
+        """
+
+    select_clause_lst = []
+    for i in range(1, num_items + 1):
+        select_clause = ""
+        if i < num_items and num_items > 2:
+            tbl_p = f"cte_{cnt}"
+        else:
+            tbl_p = f"t{i}"
+
+        select_clause += (
+            f" {tbl_p}.COMPOUND_ID{f'_{i}' if i < num_items and num_items>2 else ''}"
+        )
+        select_clause += (
+            f", {tbl_p}.GEO_NM{f'_{i}' if i < num_items and num_items>2 else ''}"
+        )
+        select_clause_lst.append(select_clause)
+
+    # edit aliases for last select clause
+    select_clause_lst[-1] = re.sub(
+        r"(COMPOUND_ID)", r"\1 \1_" + str(num_items), select_clause_lst[-1]
+    )
+    select_clause_lst[-1] = re.sub(
+        r"(GEO_NM)", r"\1 \1_" + str(num_items), select_clause_lst[-1]
+    )
+    select_clause = ", ".join(select_clause_lst)
+
+    if num_items < 3:
+        cnt += 1
+
+    end_clause = f""", cte_nested AS (
+         {cte_template.format(tbl_1=f"{f'cte_{cnt}' if num_items>2 else f't{cnt}'}",
+                             tbl_0=f"t{num_items}",
+                             cmpid_gmean_select=select_clause)}
+        )
+        """
+
+    # main sql statement that concats all together
+    sql_statement = f"""WITH {join_clause}
+            {cte_clause}
+            {end_clause if num_items > 1 else ''}
+            SELECT * FROM {'cte_nested' if num_items > 1 else 't1'} ORDER BY CELL
             """
 
-    select_clause = ", ".join(
-        [
-            f"t{i+1}.COMPOUND_ID COMPOUND_ID_{i+1}, t{i+1}.GEO_NM GEO_NM_{i+1}"
-            if i > 0
-            else f"t{i+1}.COMPOUND_ID COMPOUND_ID_1, t{i+1}.GEO_NM GEO_NM_1"
-            for i in range(len(cmp_ids))
-        ]
-    )
-    select_clause += ", " + ", ".join(select_columns)
-
-    return f"""SELECT {select_clause}
-               FROM {join_clause}
-               ORDER BY  {', '.join([f'COMPOUND_ID_{j}'
-                            for j in range(1, len(cmp_ids)+1)]) + ','
-                            if len(cmp_ids) > 1 else ''}
-                CELL, VARIANT
-                    """
+    # print(sql_statement)
+    return sql_statement
