@@ -87,6 +87,8 @@ pipeline {
                 '''
                 if [[ "$BUILD_FRONTEND" == true ]]; then
                     docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
+                else
+                    echo "Skipping frontend image push"
                 fi 
                 ''', returnStdout: true
                 )
