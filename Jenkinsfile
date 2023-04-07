@@ -6,7 +6,8 @@ pipeline {
         }
     }
     parameters {
-				booleanParam defaultValue: false, description: 'build the frontend', name: 'BUILD_FRONTEND'
+				booleanParam(defaultValue: false, description: 'build the frontend', name: 'BUILD_FRONTEND')
+				booleanParam(defaultValue: false, description: 'build the backend', name: 'BUILD_BACKEND')
 		}
     environment{
         AWSID = credentials('AWSID')
@@ -43,6 +44,8 @@ pipeline {
         
         
         stage('docker build backend') {
+            when { expression { params.BUILD_BACKEND.toString().toLowerCase() == 'true' }
+            }
             steps{
                sh( label: 'Docker Build Backend', script:
                '''
@@ -81,17 +84,24 @@ pipeline {
         }
         
     
-        stage('docker push to ecr') {
+        stage('docker push frontend to ecr') {
+            when { expression { params.BUILD_FRONTEND.toString().toLowerCase() == 'true' }
+            }
             steps {
                 sh(label: 'ECR docker push frontend', script:
                 '''
-                if [[ "$BUILD_FRONTEND" == true ]]; then
-                    docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
-                else
-                    echo "Skipping frontend image push"
-                fi 
+								#!/bin/bash
+								set -x
+                docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest
                 ''', returnStdout: true
                 )
+            }
+        }
+
+        stage('docker push backend to ecr') {
+            when { expression { params.BUILD_BACKEND.toString().toLowerCase() == 'true' }
+            }
+            steps {
                 sh(label: 'ECR docker push backend', script:
                 '''
                 docker push $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend:latest
