@@ -41,15 +41,6 @@ pipeline {
             }
         }
         
-        stage('s3 bucket download') {
-            steps {
-            withAWS(credentials:'awscredentials', region: 'us-west-2') {
-                s3Download(file: 'instantclient-basiclite-linux.x64-12.2.0.1.0.zip', bucket: 'fount-data', path: 'DevOps/instantclient-basiclite-linux.x64-12.2.0.1.0.zip')
-                s3Download(file: 'instantclient-sdk-linux.x64-12.2.0.1.0.zip', bucket: 'fount-data', path: 'DevOps/instantclient-sdk-linux.x64-12.2.0.1.0.zip')
-            }
-            }
-        }
-
         
         stage('docker build backend') {
             steps{
@@ -62,7 +53,7 @@ pipeline {
                 --build-arg ORACLE_PORT=${ORACLE_PORT} --build-arg ORACLE_SID=${ORACLE_SID} --build-arg ORACLE_USER=${ORACLE_USER} \
                 --build-arg ORACLE_PASS=${ORACLE_PASS} --build-arg DB_TYPE=PROD --build-arg REDIS_PASSWD=${REDIS_PASSWD} \
                 --build-arg REDIS_HOST=redis.kinnate -t ${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend:latest \
-                -f ${WORKSPACE}/${APP_NAME}/backend/Dockerfile.prod .
+                -f /backend/Dockerfile.prod .
                 ''', returnStdout: true
                 )
                 
