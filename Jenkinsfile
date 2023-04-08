@@ -147,21 +147,23 @@ pipeline {
                   git clone https://github.com/sktrinh12/helm-basic-app-chart.git
                   cd helm-basic-app-chart
                   helm install k8sapp-geomean-flagger-backend . --set service.namespace=$NAMESPACE \
-                  --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-backend \
+                  --set service.port=80 --set nameOverride=geomean-flagger-backend \
                   --set fullnameOverride=geomean-flagger-backend --set namespace=${NAMESPACE} \
                   --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend \
                   --set image.tag=latest --set containers.name=fastapi \
                   --set containers.ports.containerPort=80 --set app=$APP_NAME \
-                  --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
+                  --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP \
+                  --namespace $NAMESPACE
                   sleep 2
                   if [[ "$BUILD_FRONTEND" == true ]]; then
                       helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
-                      --set service.port=80 --set service.targetPort=80 --set nameOverride=geomean-flagger-frontend \
+                      --set service.port=80 --set nameOverride=geomean-flagger-frontend \
                       --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
                       --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
                       --set image.tag=latest --set containers.name=react \
                       --set containers.ports.containerPort=80 --set app=$APP_NAME \
-                      --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
+                      --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP \
+                      --namespace $NAMESPACE
                   else
                      echo "Skipping frontend helm build"
                   fi
