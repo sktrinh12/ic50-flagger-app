@@ -133,7 +133,7 @@ pipeline {
                 cd $WORKSPACE
                 curl -LO https://storage.googleapis.com/kubernetes-release/release/\$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
                 chmod +x ./kubectl
-                if ./kubectl get pod -n $NAMESPACE -l app=$APP_NAME > /dev/null 2>&1; then
+                if ./kubectl get pod -n $NAMESPACE -l app=$APP_NAME | grep -q $APP_NAME; then
                   echo "$APP_NAME pods already exists"
                   ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
                   sleep 5
@@ -143,8 +143,7 @@ pipeline {
                      echo "Skipping frontend rollout"
                   fi
                 else
-                  echo "Namespace $NAMESPACE does not exist; deploy using helm"
-                  ./kubectl create ns $NAMESPACE
+                  echo "pods $APP_NAME do not exist; deploy using helm"
                   git clone https://github.com/sktrinh12/helm-basic-app-chart.git
                   cd helm-basic-app-chart
                   helm install k8sapp-geomean-flagger-backend . --set service.namespace=$NAMESPACE \
