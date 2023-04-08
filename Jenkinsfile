@@ -133,8 +133,8 @@ pipeline {
                 cd $WORKSPACE
                 curl -LO https://storage.googleapis.com/kubernetes-release/release/\$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
                 chmod +x ./kubectl
-                if ./kubectl get namespace $NAMESPACE > /dev/null 2>&1; then
-                  echo "Namespace $NAMESPACE already exists"
+                if ./kubectl get pod -n $NAMESPACE -l app=$APP_NAME > /dev/null 2>&1; then
+                  echo "$APP_NAME pods already exists"
                   ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
                   sleep 5
                   if [[ "$BUILD_FRONTEND" == true ]]; then
@@ -152,7 +152,7 @@ pipeline {
                   --set fullnameOverride=geomean-flagger-backend --set namespace=${NAMESPACE} \
                   --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend \
                   --set image.tag=latest --set containers.name=fastapi \
-                  --set containers.ports.containerPort=80 --set app=geomean \
+                  --set containers.ports.containerPort=80 --set app=$APP_NAME \
                   --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
                   sleep 2
                   if [[ "$BUILD_FRONTEND" == true ]]; then
@@ -161,7 +161,7 @@ pipeline {
                       --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
                       --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
                       --set image.tag=latest --set containers.name=react \
-                      --set containers.ports.containerPort=80 --set app=geomean \
+                      --set containers.ports.containerPort=80 --set app=$APP_NAME \
                       --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP
                   else
                      echo "Skipping frontend helm build"
