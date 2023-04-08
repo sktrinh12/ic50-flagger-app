@@ -16,7 +16,7 @@ WORKDIR /app
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
 
-COPY /geomean-ic50-flagger/frontend ./
+COPY frontend/ ./
 
 RUN npm install 
 RUN npm run test

@@ -77,7 +77,7 @@ pipeline {
                 --build-arg REACT_APP_BACKEND_URL=http://geomean.backend.kinnate \
                 --build-arg REACT_APP_FRONTEND_URL=http://geomean.frontend.kinnate \
                 -t $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest \
-                -f $WORKSPACE/${APP_NAME}/frontend/Dockerfile.prod .
+                -f frontend/Dockerfile.prod .
                 ''', returnStdout: true
                 )
             }
