@@ -8,6 +8,7 @@ import Paper from '@mui/material/Paper'
 import { styled } from '@mui/material/styles'
 import AutocompleteBox from './AutocompleteBox'
 import axios from 'axios'
+import InputLabel from '@mui/material/InputLabel'
 
 const Pane = styled(Paper)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -94,6 +95,9 @@ const Home = () => {
       <Pane>
         <h1>Kinnate Geomean Viewer</h1>
         <Grid item xs={12}>
+          <InputLabel htmlFor='cmpd-id-search' style={{ display: 'none' }}>
+            compound-id-for-testing
+          </InputLabel>
           <AutocompleteBox
             options={state.cmpIDoptions}
             loading={loading}
