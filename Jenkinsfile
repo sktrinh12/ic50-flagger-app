@@ -135,10 +135,14 @@ pipeline {
                 chmod +x ./kubectl
                 if ./kubectl get pod -n $NAMESPACE -l app=$APP_NAME | grep -q $APP_NAME; then
                   echo "$APP_NAME pods already exists"
-                  ./kubectl rollout restart deploy/geomean-flagger-backend-deploy -n $NAMESPACE
+                  if [[ "$BUILD_BACKEND" == true ]]; then
+                     ./kubectl rollout restart deploy/${APP_NAME}-backend-deploy -n $NAMESPACE
+                  else
+                     echo "Skipping backend rollout"
+                  fi
                   sleep 5
                   if [[ "$BUILD_FRONTEND" == true ]]; then
-                      ./kubectl rollout restart deploy/geomean-flagger-frontend-deploy -n $NAMESPACE
+                      ./kubectl rollout restart deploy/${APP_NAME}-frontend-deploy -n $NAMESPACE
                   else
                      echo "Skipping frontend rollout"
                   fi
@@ -146,19 +150,23 @@ pipeline {
                   echo "pods $APP_NAME do not exist; deploy using helm"
                   git clone https://github.com/sktrinh12/helm-basic-app-chart.git
                   cd helm-basic-app-chart
-                  helm install k8sapp-geomean-flagger-backend . --set service.namespace=$NAMESPACE \
-                  --set service.port=80 --set nameOverride=geomean-flagger-backend \
-                  --set fullnameOverride=geomean-flagger-backend --set namespace=${NAMESPACE} \
-                  --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend \
-                  --set image.tag=latest --set containers.name=fastapi \
-                  --set containers.ports.containerPort=80 --set app=$APP_NAME \
-                  --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP \
-                  --namespace $NAMESPACE
+                  if [[ "$BUILD_BACKEND" == true ]]; then
+                      helm install k8sapp-${APP_NAME}-backend . --set service.namespace=${NAMESPACE} \
+                      --set service.port=80 --set nameOverride=${APP_NAME}-backend \
+                      --set fullnameOverride=${APP_NAME}-backend --set namespace=${NAMESPACE} \
+                      --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend \
+                      --set image.tag=latest --set containers.name=fastapi \
+                      --set containers.ports.containerPort=80 --set app=$APP_NAME \
+                      --set terminationGracePeriodSeconds=10 --set service.type=ClusterIP \
+                      --namespace $NAMESPACE
+                  else
+                     echo "Skipping backend helm build"
+                  fi
                   sleep 2
                   if [[ "$BUILD_FRONTEND" == true ]]; then
-                      helm install k8sapp-geomean-flagger-frontend . --set service.namespace=$NAMESPACE \
-                      --set service.port=80 --set nameOverride=geomean-flagger-frontend \
-                      --set fullnameOverride=geomean-flagger-frontend --set namespace=${NAMESPACE} \
+                      helm install k8sapp-${APP_NAME}-frontend . --set service.namespace=${NAMESPACE} \
+                      --set service.port=80 --set nameOverride=${APP_NAME}-frontend \
+                      --set fullnameOverride=${APP_NAME}-frontend --set namespace=${NAMESPACE} \
                       --set image.repository=${AWSID}.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend \
                       --set image.tag=latest --set containers.name=react \
                       --set containers.ports.containerPort=80 --set app=$APP_NAME \
