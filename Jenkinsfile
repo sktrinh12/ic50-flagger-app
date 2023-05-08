@@ -142,7 +142,7 @@ pipeline {
                   fi
                   sleep 5
                   if [[ "$BUILD_FRONTEND" == true ]]; then
-                      ./kubectl rollout restart deploy/${APP_NAME}-frontend-deploy -n $NAMESPACE
+                     ./kubectl rollout restart deploy/${APP_NAME}-frontend-deploy -n $NAMESPACE
                   else
                      echo "Skipping frontend rollout"
                   fi
