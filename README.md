@@ -1,6 +1,28 @@
 # Geomean Flagger
 
+### Introduction:
+
+FastAPI + ReactJS app that displays geomean and individual IC50 values for biochemical and cellular data. Samples can be flagged to either include or exclude from the geomean calculation. The calculation involves this simple aggregate:
+
+```sql
+ROUND( POWER(10,
+               AVG( LOG(10, t3.ic50) ) OVER(PARTITION BY
+                    t3.CRO,
+                    t3.ASSAY_TYPE,
+                    t3.COMPOUND_ID,
+                    t3.TARGET,
+                    t3.VARIANT,
+                    t3.COFACTORS,
+                    t3.flag
+                )) * TO_NUMBER('1.0e+09'), 1) AS GEOMEAN
+```
+
+The samples are partitioned by these fields. Users want to be able to pick and choose which samples from which experiments they can include or exclude from this aggregate calculation a separate application was developed to achieve this result.
+
 ### Commands:
+
+The app is initially deployed manually using console (Helm) and then using Jenkins CI tool for future changes. The GitHub repo has a web-hook attached and will build upon git pushes.
+Add ECR repository: `aws ecr create-repository --repository-name ${NAME_OF_APP} --image-scanning-configuration scanOnPush=true`
 
 #### Frontend:
 
@@ -10,6 +32,8 @@
 - `kubectl rollout restart deploy/frontend-deploy -n gmean-flag`
 
 #### Backend:
+
+The backend consists of a fastapi python application that writes a dynamic string to pass as a SQL query and execute using the Oracle_cx library.
 
 - `docker build -t backend -f Dockerfile .`
 - `docker tag backend:latest $(cat ~/Documents/security_files/aws-console).dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-backend`
