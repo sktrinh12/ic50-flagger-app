@@ -8,7 +8,7 @@ pipeline {
     parameters {
 				booleanParam(defaultValue: false, description: 'build the frontend', name: 'BUILD_FRONTEND')
 				booleanParam(defaultValue: false, description: 'build the backend', name: 'BUILD_BACKEND')
-        stringParam(defaultValue: 1, description: 'Version number', name: 'VERSION_NUMBER')
+        stringParam(defaultValue: '0.1', description: 'Version number', name: 'VERSION_NUMBER')
 		}
     environment{
         AWSID = credentials('AWSID')
