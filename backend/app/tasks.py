@@ -6,6 +6,7 @@ from app.db import generic_oracle_query
 from app.redis_connection import redis_conn
 
 ENV = getenv("ENV", "DEV")
+DB_TYPE = getenv("DB_TYPE", "DEV")
 
 # celery = Celery(
 #     __name__,
@@ -22,12 +23,13 @@ def update_redis_cache(sql, key):
     )
     if ENV == "DEV":
         print(payload)
-    if not payload:
-        raise ValueError("No payload returned")
-    if redis_conn.exists(key):
-        redis_conn.delete(key)
-    for it in payload:
-        redis_conn.lpush(key, dumps(it[0]))
+    if DB_TYPE == "PROD":
+        if not payload:
+            raise ValueError("No payload returned")
+        if redis_conn.exists(key):
+            redis_conn.delete(key)
+        for it in payload:
+            redis_conn.lpush(key, dumps(it[0]))
 
 
 tasks_freq = [
