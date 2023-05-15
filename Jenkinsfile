@@ -8,6 +8,7 @@ pipeline {
     parameters {
 				booleanParam(defaultValue: false, description: 'build the frontend', name: 'BUILD_FRONTEND')
 				booleanParam(defaultValue: false, description: 'build the backend', name: 'BUILD_BACKEND')
+        stringParam(defaultValue: 1, description: 'Version number', name: 'VERSION_NUMBER')
 		}
     environment{
         AWSID = credentials('AWSID')
@@ -76,6 +77,8 @@ pipeline {
                 --no-cache --network=host \
                 --build-arg REACT_APP_BACKEND_URL=http://geomean.backend.kinnate \
                 --build-arg REACT_APP_FRONTEND_URL=http://geomean.frontend.kinnate \
+                --build-arg REACT_APP_VERSION=${VERSION_NUMBER} \
+                --build-arg REACT_APP_ENVIRONMENT=PROD \
                 -t $AWSID.dkr.ecr.us-west-2.amazonaws.com/geomean-flagger-frontend:latest \
                 -f frontend/Dockerfile.prod .
                 ''', returnStdout: true
