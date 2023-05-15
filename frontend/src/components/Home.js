@@ -9,6 +9,7 @@ import { styled } from '@mui/material/styles'
 import AutocompleteBox from './AutocompleteBox'
 import axios from 'axios'
 import InputLabel from '@mui/material/InputLabel'
+import AppVersion from './AppVersionTag'
 
 const Pane = styled(Paper)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -137,6 +138,7 @@ const Home = () => {
           </Button>
         </Grid>
       </Pane>
+      <AppVersion />
     </Grid>
   )
 }
