@@ -21,7 +21,7 @@ const AppVersion = () => {
       }}
     >
       <Typography variant='caption' component='span'>
-        {`${env}_${version}`}
+        {`${env}_v${version}`}
       </Typography>
     </Box>
   )
