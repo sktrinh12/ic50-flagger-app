@@ -1,9 +1,13 @@
 # pull official base image
 FROM node:alpine as build
 ARG REACT_APP_BACKEND_URL
+ARG REACT_APP_VERSION
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 ENV GENERATE_SOURCEMAP=false
 ENV CI=false
+ENV REACT_APP_VERSION=$REACT_APP_VERSION
+ENV REACT_APP_ENVIRONMENT=DEVEL
+
 
 RUN apk update && apk upgrade --no-cache && \
 		apk add --no-cache
