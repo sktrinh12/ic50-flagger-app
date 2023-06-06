@@ -10,10 +10,7 @@ field_names_dct = {
         "VARIANT",
         "CELL_INCUBATION_HR",
         "PCT_SERUM",
-        "MINUS_3STDEV",
-        "PLUS_3STDEV",
-        "MINUS_3VAR",
-        "PLUS_3VAR",
+        "THREED",
         "GEOMEAN",
         "N_OF_M",
         "STDEV",
@@ -58,10 +55,6 @@ field_names_dct = {
         "COFACTORS",
         "ATP_CONC_UM",
         "GEOMEAN",
-        "MINUS_3STDEV",
-        "PLUS_3STDEV",
-        "MINUS_3VAR",
-        "PLUS_3VAR",
         "N_OF_M",
         "STDEV",
     ],
@@ -99,10 +92,6 @@ sql_cmds = {
         max(t0.pct_serum) AS PCT_SERUM,
         max(t0.threed) AS THREED,
         max(t0.geomean_nM) AS GEOMEAN,
-        max(t0.nm_minus_3_stdev) AS MINUS_3STDEV,
-        max(t0.nm_plus_3_stdev) AS PLUS_3STDEV,
-        max(t0.nm_minus_3_var) AS MINUS_3VAR,
-        max(t0.nm_plus_3_var) AS PLUS_3VAR,
         max(t0.n) || ' of ' || max(t0.m) AS N_OF_M,
         max(t0.stdev) as STDEV
     FROM (
@@ -115,9 +104,9 @@ sql_cmds = {
             nvl(t1.variant, '-') AS variant,
             t1.cell_incubation_hr,
             t1.pct_serum,
+            case t1.threed when 'Y' then '3D' else '-' end threed,
+            case when t1.treatment is not null then treatment else '-' end treatment,
             t1.modifier,
-            t1.threed,
-            t1.treatment,
             t2.flag,
         round(stddev(t1.ic50) OVER(PARTITION BY t1.compound_id,
             t1.cro,
@@ -142,102 +131,6 @@ sql_cmds = {
                 t1.treatment,
                 t1.modifier,
                 t2.flag)), '99999.99EEEE') * 1000000000), 1) AS geomean_nM,
-        round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-                t1.cro,
-                t1.assay_type,
-                t1.cell_line,
-                t1.variant,
-                t1.cell_incubation_hr,
-                t1.pct_serum,
-                t1.threed,
-                t1.treatment,
-                t1.modifier,
-                t2.flag))* 1000000000
-                - (3 * STDDEV(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                    t1.cro,
-                    t1.assay_type,
-                    t1.cell_line,
-                    t1.variant,
-                    t1.cell_incubation_hr,
-                    t1.pct_serum,
-                    t1.threed,
-                    t1.treatment,
-                    t1.modifier,
-                    t2.flag) * 1000000000)), 3) AS nm_minus_3_stdev,
-        round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-            t1.cro,
-                t1.assay_type,
-                t1.cell_line,
-                t1.variant,
-                t1.cell_incubation_hr,
-                t1.pct_serum,
-                t1.threed,
-                t1.treatment,
-                t1.modifier,
-                t2.flag))* 1000000000
-                + (3 * STDDEV(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                        t1.cro,
-                        t1.assay_type,
-                        t1.cell_line,
-                        t1.variant,
-                        t1.cell_incubation_hr,
-                        t1.pct_serum,
-                        t1.threed,
-                        t1.treatment,
-                        t1.modifier,
-                        t2.flag) * 1000000000)), 3) AS nM_plus_3_stdev,
-                    round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-            t1.cro,
-            t1.assay_type,
-            t1.cell_line,
-            t1.variant,
-            t1.cell_incubation_hr,
-            t1.pct_serum,
-            t1.threed,
-            t1.treatment,
-            t1.modifier,
-            t2.flag))* 1000000000
-                - (3 * VARIANCE(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                        t1.cro,
-                        t1.assay_type,
-                        t1.cell_line,
-                        t1.variant,
-                        t1.cell_incubation_hr,
-                        t1.pct_serum,
-                        t1.threed,
-                        t1.treatment,
-                        t1.modifier,
-                        t2.flag) * 1000000000)), 3) AS nm_minus_3_var,
-        round(abs(power(10, AVG(log(10, t1.ic50))
-            OVER(PARTITION BY t1.compound_id,
-                t1.cro,
-                t1.assay_type,
-                t1.cell_line,
-                t1.variant,
-                t1.cell_incubation_hr,
-                t1.pct_serum,
-                t1.threed,
-                t1.treatment,
-                t1.modifier,
-                t2.flag))* 1000000000
-                + (3 * VARIANCE(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                        t1.cro,
-                        t1.assay_type,
-                        t1.cell_line,
-                        t1.variant,
-                        t1.cell_incubation_hr,
-                        t1.pct_serum,
-                        t1.threed,
-                        t1.treatment,
-                        t1.modifier,
-                        t2.flag) * 1000000000)), 3) AS nM_plus_3_var,
         count(t1.ic50) OVER(PARTITION BY t1.compound_id,
             t1.cro,
             t1.assay_type,
@@ -277,7 +170,8 @@ sql_cmds = {
         t0.cell_incubation_hr,
         t0.pct_serum,
         t0.threed,
-        t0.treatment
+        t0.treatment,
+        t0.flag
     """,
     "GEOMEAN_CELL_ALL": """
     SELECT
@@ -352,10 +246,6 @@ sql_cmds = {
         max(t0.COFACTORS) AS COFACTORS,
         max(t0.ATP_CONC_UM) AS ATP_CONC_UM,
         max(t0.geomean_nM) AS GEOMEAN,
-        max(t0.nm_minus_3_stdev) AS MINUS_3STDEV,
-        max(t0.nm_plus_3_stdev) AS PLUS_3STDEV,
-        max(t0.nm_minus_3_var) AS MINUS_3VAR,
-        max(t0.nm_plus_3_var) AS PLUS_3VAR,
         max(t0.n) || ' of ' || max(t0.m) AS N_OF_M,
         max(t0.stdev) as STDEV
     FROM (
@@ -389,86 +279,6 @@ sql_cmds = {
             t1.atp_conc_um,
             t1.modifier,
         t2.flag)), '99999.99EEEE') * 1000000000), 1) AS geomean_nM,
-        round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-              t1.cro,
-              t1.assay_type,
-              t1.target,
-              t1.variant,
-              t1.cofactors,
-              t1.atp_conc_um,
-              t1.modifier,
-              t2.flag))* 1000000000
-                - (3 * STDDEV(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                    t1.cro,
-                    t1.assay_type,
-                    t1.target,
-                    t1.variant,
-                    t1.cofactors,
-                    t1.atp_conc_um,
-                    t1.modifier,
-                    t2.flag) * 1000000000)), 3) AS nm_minus_3_stdev,
-        round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-              t1.cro,
-              t1.assay_type,
-              t1.target,
-              t1.variant,
-              t1.cofactors,
-              t1.atp_conc_um,
-              t1.modifier,
-              t2.flag))* 1000000000
-                + (3 * STDDEV(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                        t1.cro,
-                        t1.assay_type,
-                        t1.target,
-                        t1.variant,
-                        t1.cofactors,
-                        t1.atp_conc_um,
-                        t1.modifier,
-                        t2.flag) * 1000000000)), 3) AS nM_plus_3_stdev,
-        round(ABS(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-              t1.cro,
-              t1.assay_type,
-              t1.target,
-              t1.variant,
-              t1.cofactors,
-              t1.atp_conc_um,
-              t1.modifier,
-              t2.flag))* 1000000000
-                - (3 * VARIANCE(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                        t1.cro,
-                        t1.assay_type,
-                        t1.target,
-                        t1.variant,
-                        t1.cofactors,
-                        t1.atp_conc_um,
-                        t1.modifier,
-                        t2.flag) * 1000000000)), 3) AS nm_minus_3_var,
-        round(abs(power(10, AVG(log(10, t1.ic50))
-          OVER(PARTITION BY t1.compound_id,
-              t1.cro,
-              t1.assay_type,
-              t1.target,
-              t1.variant,
-              t1.cofactors,
-              t1.atp_conc_um,
-              t1.modifier,
-              t2.flag))* 1000000000
-                + (3 * VARIANCE(t1.ic50)
-                    OVER(PARTITION BY t1.compound_id,
-                    t1.cro,
-                    t1.assay_type,
-                    t1.target,
-                    t1.variant,
-                    t1.cofactors,
-                    t1.atp_conc_um,
-                    t1.modifier,
-                    t2.flag) * 1000000000)), 3) AS nM_plus_3_var,
         count(t1.ic50) OVER(PARTITION BY t1.compound_id, t1.cro,
             t1.assay_type,
             t1.target,
@@ -501,7 +311,8 @@ sql_cmds = {
         t0.target,
         t0.variant,
         t0.cofactors,
-        t0.atp_conc_um
+        t0.atp_conc_um,
+        t0.flag
     """,
     "GEOMEAN_BIO_ALL": """SELECT
                 t3.PID,
@@ -705,3 +516,26 @@ def gen_multi_cmpId_sql_template_cell(mdict):
 
     # print(sql_statement)
     return sql_statement
+
+
+# sar view
+select_columns = {
+    "mol_structure": "MOLFILE",
+    "biochemical_geomean": "ASSAY_TYPE, TARGET, VARIANT, COFACTORS, GEO_NM, N_OF_M, CREATED_DATE, DATE_HIGHLIGHT",
+    "cellular_geomean": "ASSAY_TYPE, CELL, VARIANT, GEO_NM, N_OF_M, CREATED_DATE, DATE_HIGHLIGHT",
+    "in_vivo_pk": "SPECIES, DOSE, EXPERIMENT_ID, ADMINISTRATION, AUCLAST_D_RESULT, CL_OBS_RESULT, CMAX_RESULT, CMAX_RATIO_RESULT, KP_RESULT, KP_UU_RESULT, F_RESULT, VSS_OBS_RESULT, MRTINF_OBS_RESULT, T1_2_RESULT, CREATED_DATE, DATE_HIGHLIGHT",
+    "compound_batch": "BATCH_ID, BATCH_REGISTERED_PROJECT, net_weight_mg, SUPPLIER, REGISTERED_DATE, DATE_HIGHLIGHT",
+    "metabolic_stability": "CYP, RESULT, COMMENTS, CREATED_DATE, DATE_HIGHLIGHT",
+    "pxr": "FOLD_INDUCTION, UNIT, CONC, CREATED_DATE, DATE_HIGHLIGHT",
+    "permeability": "BATCH_ID, A_B, B_A, EFFLUX_RATIO, CELL_TYPES, PCT_RECOVERY_AB, CREATED_DATE, DATE_HIGHLIGHT",
+}
+select_stmts = {
+    "mol_structure": "SELECT {0} FROM C$PINPOINT.REG_DATA WHERE FORMATTED_ID = '{1}'",
+    "biochemical_geomean": """SELECT {0} FROM su_biochem_drc_stats WHERE COMPOUND_ID = '{1}' ORDER BY CREATED_DATE DESC""",  # biochemical geomean
+    "cellular_geomean": """SELECT {0} FROM SU_CELLULAR_DRC_STATS WHERE COMPOUND_ID = '{1}' ORDER BY CREATED_DATE DESC""",  # cellular geomean
+    "in_vivo_pk": """SELECT {0} FROM FT_DMPK_IN_VIVO_PIVOT_VW WHERE COMPOUND_ID = '{1}' ORDER BY created_date DESC""",  # in vivo pk
+    "compound_batch": """SELECT {0} FROM COMPOUND_BATCH WHERE compound_id = '{1}' ORDER BY registered_date DESC""",
+    "metabolic_stability": """SELECT {0} FROM FT_CYP_INHIBITION_VW WHERE COMPOUND_ID = '{1}' ORDER BY created_date DESC""",
+    "pxr": """SELECT {0} FROM FT_PXR_VW WHERE COMPOUND_ID = '{1}' ORDER BY created_date DESC""",
+    "permeability": """SELECT {0} FROM FT_PERMEABILITY_VW WHERE COMPOUND_ID = '{1}' ORDER BY created_date DESC""",
+}
