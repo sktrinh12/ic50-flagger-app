@@ -155,10 +155,10 @@ def extract_data(output, payload):
         output_dct = {}
         output_dct["ID"] = i
         for j, n in enumerate(field_names):
-            if n == "PLOT":
-                output_dct[n] = r[j].read().rstrip().replace("\r\n", "")
-            else:
-                output_dct[n] = r[j]
+            # if n == "PLOT":
+            #     output_dct[n] = r[j].read().rstrip().replace("\r\n", "")
+            # else:
+            output_dct[n] = r[j]
         output_lst.append(output_dct)
     return output_lst
 
