@@ -185,6 +185,8 @@ sql_cmds = {
         t3.CELL_LINE,
         t3.VARIANT,
         t3.PCT_SERUM,
+        case t3.THREED when 'Y' then '3D' else '-' end THREED,
+        case when t3.TREATMENT is not null then treatment else '-' end TREATMENT,
         t3.PASSAGE_NUMBER,
         t3.WASHOUT,
         t3.CELL_INCUBATION_HR,
@@ -217,6 +219,8 @@ sql_cmds = {
          t1.PCT_SERUM,
          t1.WASHOUT,
          t1.PASSAGE_NUMBER,
+         t1.THREED,
+         t1.TREATMENT,
          t1.CELL_INCUBATION_HR,
          t1.GRAPH,
          nvl2(t2.FLAG, t2.FLAG, 0) flag,
@@ -529,9 +533,93 @@ select_columns = {
     "pxr": "FOLD_INDUCTION, UNIT, CONC, CREATED_DATE, DATE_HIGHLIGHT",
     "permeability": "BATCH_ID, A_B, B_A, EFFLUX_RATIO, CELL_TYPES, PCT_RECOVERY_AB, CREATED_DATE, DATE_HIGHLIGHT",
 }
+
+dm_table_cols = """
+SELECT column_name
+FROM (
+    SELECT column_name
+    FROM user_tab_columns
+    WHERE table_name = '{0}'
+)
+OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY
+"""
+
+sar_biochem_sql_dict = {
+    "select": """
+    MAX(t0.ASSAY_TYPE) AS assay_type,
+    MAX(t0.TARGET) AS target,
+    MAX(t0.VARIANT) AS variant,
+    MAX(t0.COFACTORS) AS cofactors,
+    MAX(t0.GEOMEAN_NM) AS geo_nM,
+    max(t0.n) || ' of ' || max(t0.m) AS n_of_m,
+    max(t0.created_date) as created_date,
+    max(t0.date_highlight) as date_highlight
+""",
+    "inner_select": """
+    CRO,
+    ASSAY_TYPE,
+    COMPOUND_ID,
+    BATCH_ID,
+    TARGET,
+    VARIANT,
+    COFACTORS,
+    ATP_CONC_UM,
+    MODIFIER,
+    CREATED_DATE,
+    DATE_HIGHLIGHT,
+""",
+    "geomean": """
+    ROUND(POWER(10, AVG(LOG(10, ic50)) OVER(PARTITION BY
+      CRO,
+      ASSAY_TYPE,
+      COMPOUND_ID,
+      TARGET,
+      VARIANT,
+      COFACTORS,
+      ATP_CONC_UM,
+      MODIFIER
+)) * TO_NUMBER('1.0e+09'), 1) AS geomean_nM,
+""",
+    "count": """
+    count(t1.ic50) OVER(PARTITION BY t1.compound_id,
+        t1.cro,
+        t1.assay_type,
+        t1.target,
+        t1.variant,
+        t1.cofactors,
+        t1.atp_conc_um,
+        t1.modifier) AS n,
+    count(t1.ic50) OVER(PARTITION BY t1.compound_id,
+        t1.cro,
+        t1.assay_type,
+        t1.target,
+        t1.variant,
+        t1.cofactors,
+        t1.atp_conc_um) AS m
+""",
+    "group_by": """
+    t0.COMPOUND_ID,
+    t0.CRO,
+    t0.ASSAY_TYPE,
+    t0.TARGET,
+    t0.VARIANT,
+    t0.COFACTORS,
+    t0.ATP_CONC_UM
+""",
+}
+
 select_stmts = {
     "mol_structure": "SELECT {0} FROM C$PINPOINT.REG_DATA WHERE FORMATTED_ID = '{1}'",
-    "biochemical_geomean": """SELECT {0} FROM su_biochem_drc_stats WHERE COMPOUND_ID = '{1}' ORDER BY CREATED_DATE DESC""",  # biochemical geomean
+    "biochemical_geomean": f"""SELECT {sar_biochem_sql_dict['select']}
+    FROM ( SELECT {sar_biochem_sql_dict['inner_select']} {sar_biochem_sql_dict['geomean']} {sar_biochem_sql_dict['count']}
+    FROM DS3_USERDATA.SU_BIOCHEM_DRC t1
+    WHERE
+        ASSAY_INTENT = 'Screening'
+        AND VALIDATED = 'VALIDATED'
+    ) t0 WHERE t0.MODIFIER IS NULL and t0.COMPOUND_ID = '{{1}}'
+    GROUP BY {sar_biochem_sql_dict['group_by']}
+    ORDER BY CREATED_DATE DESC
+    """,
     "cellular_geomean": """SELECT {0} FROM SU_CELLULAR_DRC_STATS WHERE COMPOUND_ID = '{1}' ORDER BY CREATED_DATE DESC""",  # cellular geomean
     "in_vivo_pk": """SELECT {0} FROM FT_DMPK_IN_VIVO_PIVOT_VW WHERE COMPOUND_ID = '{1}' ORDER BY created_date DESC""",  # in vivo pk
     "compound_batch": """SELECT {0} FROM COMPOUND_BATCH WHERE compound_id = '{1}' ORDER BY registered_date DESC""",
