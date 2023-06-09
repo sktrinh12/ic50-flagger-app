@@ -5,3 +5,4 @@ cx_Oracle
 scipy
 redis
 fastapi-utils
+rdkit
