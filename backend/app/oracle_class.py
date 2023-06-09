@@ -1,6 +1,7 @@
 import cx_Oracle
 from os import getenv
 
+
 oracle_dir = getenv(
     "ORACLE_HOME", "/Users/spencer.trinhkinnate.com/instantclient_12_2/"
 )
@@ -24,11 +25,23 @@ class OracleConnection(object):
         self.con = None
         self.dsn = cx_Oracle.makedsn(self.hostname, self.port, self.sid)
 
+    def output_type_handler(self, cursor, name, default_type, size, precision, scale):
+        if default_type == cx_Oracle.DB_TYPE_CLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
+        if default_type == cx_Oracle.DB_TYPE_BLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
+        if default_type == cx_Oracle.DB_TYPE_NCLOB:
+            return cursor.var(
+                cx_Oracle.DB_TYPE_LONG_NVARCHAR, arraysize=cursor.arraysize
+            )
+
     def __enter__(self):
         try:
             self.con = cx_Oracle.connect(
                 user=self.username, password=self.password, dsn=self.dsn
             )
+
+            self.con.outputtypehandler = self.output_type_handler
             return self.con
         except cx_Oracle.DatabaseError as e:
             raise
