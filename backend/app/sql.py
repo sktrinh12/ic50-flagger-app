@@ -26,6 +26,8 @@ field_names_dct = {
         "CELL_LINE",
         "VARIANT",
         "PCT_SERUM",
+        "THREED",
+        "TREATMENT",
         "PASSAGE_NUMBER",
         "WASHOUT",
         "CELL_INCUBATION_HR",
