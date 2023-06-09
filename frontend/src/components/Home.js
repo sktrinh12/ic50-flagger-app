@@ -20,7 +20,7 @@ const Pane = styled(Paper)(({ theme }) => ({
 
 const Home = () => {
   const {
-    REACT_APP_BACKEND_URL = 'http://localhost:8000',
+    REACT_APP_BACKEND_URL = 'http://localhost:80',
     REACT_APP_FRONTEND_URL = 'http://localhost:3000',
   } = process.env
   const backendURL = `${REACT_APP_BACKEND_URL}/compound_ids`

@@ -78,6 +78,22 @@ module.exports = {
       color: '#efeff6ff',
     },
     {
+      id: 'THREED',
+      label: '3D',
+      minWidth: 60,
+      fontWeight: 'bold',
+      backgroundColor: PurpleColour,
+      color: '#efeff6ff',
+    },
+    {
+      id: 'TREATMENT',
+      label: 'Treatment',
+      minWidth: 60,
+      fontWeight: 'bold',
+      backgroundColor: PurpleColour,
+      color: '#efeff6ff',
+    },
+    {
       id: 'PASSAGE_NUMBER',
       label: 'Passage #',
       minWidth: 50,
