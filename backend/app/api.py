@@ -41,6 +41,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# for sar view
+case_txr = {
+    "biochemical_geomean": "CREATED_DATE",
+    "cellular_geomean": "CREATED_DATE",
+    "in_vivo_pk": "CREATED_DATE",
+    "compound_batch": "REGISTERED_DATE",
+}
+
 
 # main root endpoint
 @app.get("/")
@@ -202,21 +210,21 @@ async def run_sql_statements(
     print(cmpd_ids)
     worker_threads = []
     for cmpd_id in cmpd_ids:
-        payload = {}
         for k, v in select_stmts.items():
             sql_stmt = v.format(select_columns[k], cmpd_id)
-            if k == "compound_batch":
+            if k in case_txr:
+                case_info = case_txr[k]
                 sql_stmt = sql_stmt.replace(
                     "DATE_HIGHLIGHT",
-                    f"""CASE WHEN registered_date >= TO_DATE('{start_date}',
-                    'MM-DD-YYYY') AND registered_date <= TO_DATE('{end_date}',
+                    f"""CASE WHEN {case_info} >= TO_DATE('{start_date}',
+                    'MM-DD-YYYY') AND {case_info} <= TO_DATE('{end_date}',
                     'MM-DD-YYYY')  THEN 1 ELSE 0 END DATE_HIGHLIGHT""",
                 )
             else:
                 sql_stmt = sql_stmt.replace(
                     "DATE_HIGHLIGHT",
-                    f"""CASE WHEN created_date >= TO_DATE('{start_date}',
-                    'MM-DD-YYYY') AND created_date <= TO_DATE('{end_date}',
+                    f"""CASE WHEN experiment_date >= TO_DATE('{start_date}',
+                    'MM-DD-YYYY') AND experiment_date <= TO_DATE('{end_date}',
                     'MM-DD-YYYY') THEN 1 ELSE 0 END DATE_HIGHLIGHT""",
                 )
             worker = DatabaseWorker(sql_stmt, k, result_queue, select_columns, cmpd_id)
