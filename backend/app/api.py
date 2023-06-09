@@ -1,17 +1,22 @@
-from fastapi import FastAPI, Response, Request, HTTPException, Depends, status
+from fastapi import FastAPI, Response, Request, HTTPException, Depends, status, Query
 from fastapi_utils.session import FastAPISessionMaker
 from fastapi_utils.tasks import repeat_every
-from .db import generic_oracle_query, generate_sql_stmt
 from fastapi.middleware.cors import CORSMiddleware
-from .schemas import GetDataSchema
-from fastapi import Query
 from typing import List
+from .db import generate_sql_stmt, generic_oracle_query
+from .schemas import GetDataSchema
 from .functions import get_msr_stats
 from .redis_connection import redis_conn
-from .tasks import update_redis_cache, tasks_freq, tasks_infreq
+from .tasks import update_redis_cache, tasks_infreq
+from .db_worker import DatabaseWorker
+from .sql import select_columns, select_stmts, dm_table_cols
 from json import loads
+import os
+from datetime import datetime, timedelta
+from queue import Queue
 
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 app = FastAPI()
 
 
@@ -148,6 +153,109 @@ async def update_data(payload: Request, sql_type: str, type: str, user_name: str
         STATUS_CODE = status.HTTP_400_BAD_REQUEST
     post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE) | result
     return post_result
+
+
+@app.get("/v1/get_cmpid_from_tbl")
+async def fetch_cmpid_from(
+    dm_table: str = Query(default="LIST_TESTADMIN_214006"),
+) -> Response:
+    cmpd_ids = []
+    if dm_table:
+        col_query = dm_table_cols.format(dm_table)
+        column_name = generic_oracle_query(col_query, {"SQL_TYPE": "blank"})
+        print(col_query)
+        if column_name:
+            column_name = column_name[0][0]
+            fetch_query = f"SELECT {column_name} AS cmpd_id FROM {dm_table}"
+            rtn_data = generic_oracle_query(fetch_query, {"SQL_TYPE": "blank"})
+            for cid in rtn_data:
+                cmpd_ids.append(cid[0])
+    return cmpd_ids
+
+
+@app.get("/v1/sar_view_sql")
+async def run_sql_statements(
+    mdata: GetDataSchema = Depends(),
+    date_filter: str = Query(
+        f'{(datetime.now() - timedelta(days=7)).strftime("%m-%d-%Y")}_{datetime.now().strftime("%m-%d-%Y")}'
+    ),
+    dm_table: str = Query(default=None),
+) -> Response:
+    cmpd_ids = []
+    if dm_table:
+        query = f"select compound_id from {dm_table}"
+        rtn_data = generic_oracle_query(query, {"SQL_TYPE": "blank"})
+        for cid in rtn_data:
+            cmpd_ids.append(cid[0])
+    else:
+        if mdata.compound_id and "-" in mdata.compound_id:
+            cmpd_ids = mdata.compound_id.split("-")
+        else:
+            cmpd_ids.append(mdata.compound_id)
+
+    main_payload = {}
+    result_queue = Queue()
+
+    start_date, end_date = date_filter.split("_")
+    print(f"{start_date} - {end_date}")
+    print(cmpd_ids)
+    worker_threads = []
+    for cmpd_id in cmpd_ids:
+        payload = {}
+        for k, v in select_stmts.items():
+            sql_stmt = v.format(select_columns[k], cmpd_id)
+            if k == "compound_batch":
+                sql_stmt = sql_stmt.replace(
+                    "DATE_HIGHLIGHT",
+                    f"""CASE WHEN registered_date >= TO_DATE('{start_date}',
+                    'MM-DD-YYYY') AND registered_date <= TO_DATE('{end_date}',
+                    'MM-DD-YYYY')  THEN 1 ELSE 0 END DATE_HIGHLIGHT""",
+                )
+            else:
+                sql_stmt = sql_stmt.replace(
+                    "DATE_HIGHLIGHT",
+                    f"""CASE WHEN created_date >= TO_DATE('{start_date}',
+                    'MM-DD-YYYY') AND created_date <= TO_DATE('{end_date}',
+                    'MM-DD-YYYY') THEN 1 ELSE 0 END DATE_HIGHLIGHT""",
+                )
+            worker = DatabaseWorker(sql_stmt, k, result_queue, select_columns, cmpd_id)
+            worker_threads.append(worker)
+
+    for worker in worker_threads:
+        worker.start()
+
+    for worker in worker_threads:
+        worker.join()
+
+    while not result_queue.empty():
+        cmpd_id, payload = result_queue.get()
+        if cmpd_id not in main_payload:
+            main_payload[cmpd_id] = {}
+        main_payload[cmpd_id].update(payload)
+
+    sorted_payload = {
+        cmpd_id: {
+            k: main_payload[cmpd_id][k]
+            for k in ["compound_id"] + list(select_columns.keys())
+            if k in main_payload[cmpd_id]
+        }
+        for cmpd_id in cmpd_ids
+    }
+
+    return sorted_payload
+
+
+# @app.get("/v1/chem-draw", tags=["get-data"])
+# async def chem_draw_ep():
+#     file_path = os.path.join(script_dir, "input.mol")
+#     molecule = open(file_path, "r").read()
+#     svg, stderr = await chem_draw(mol_str=molecule, size=250)
+#     if molecule:
+#         return Response(content=svg, media_type="image/svg+xml")
+#     else:
+#         data = {"API Error": stderr.splitlines()[1]}
+#         print(data)
+#         return Response(content=data, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 @app.on_event("startup")
