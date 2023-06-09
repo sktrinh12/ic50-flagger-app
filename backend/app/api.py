@@ -7,7 +7,7 @@ from .db import generate_sql_stmt, generic_oracle_query
 from .schemas import GetDataSchema
 from .functions import get_msr_stats
 from .redis_connection import redis_conn
-from .tasks import update_redis_cache, tasks_infreq
+from .tasks import update_redis_cache, tasks_infreq, tasks_freq
 from .db_worker import DatabaseWorker
 from .sql import select_columns, select_stmts, dm_table_cols
 from json import loads
@@ -28,6 +28,7 @@ origins = [
     "http://msr-viz.kinnate",
     "https://compound-comparison.kinnate.net",
     "http://compound.comparison.kinnate",
+    "http://sar-view.kinnate",
     "https://msr.kinnate.net",
     "https://geomean.kinnate.net",
 ]
