@@ -12,7 +12,6 @@ pipeline {
 		}
     environment{
         AWSID = credentials('AWSID')
-        GITHUB_PAT = credentials('github-kinnate-secret-text')
         DOCKER_PSW = credentials('DOCKER_PASSWORD')
         ORACLE_HOST = 'dotoradb.fount'
         ORACLE_PORT = 1521
