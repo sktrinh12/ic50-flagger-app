@@ -5,7 +5,7 @@ module.exports = {
     {
       id: 'COMPOUND_ID',
       label: 'Compound ID',
-      minWidth: 70,
+      minWidth: 60,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -13,7 +13,7 @@ module.exports = {
     {
       id: 'CRO',
       label: 'CRO',
-      minWidth: 70,
+      minWidth: 50,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -21,7 +21,7 @@ module.exports = {
     {
       id: 'ASSAY_TYPE',
       label: 'Assay Type',
-      minWidth: 50,
+      minWidth: 55,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -30,7 +30,7 @@ module.exports = {
     {
       id: 'CELL_LINE',
       label: 'Cell Line',
-      minWidth: 60,
+      minWidth: 65,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -39,7 +39,7 @@ module.exports = {
     {
       id: 'VARIANT',
       label: 'Variant',
-      minWidth: 50,
+      minWidth: 65,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -55,7 +55,7 @@ module.exports = {
     {
       id: 'PCT_SERUM',
       label: '% Serum',
-      minWidth: 60,
+      minWidth: 55,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -63,7 +63,7 @@ module.exports = {
     {
       id: 'THREED',
       label: '3D',
-      minWidth: 60,
+      minWidth: 50,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -79,7 +79,7 @@ module.exports = {
     {
       id: 'N_OF_M',
       label: 'n of m',
-      minWidth: 70,
+      minWidth: 60,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',

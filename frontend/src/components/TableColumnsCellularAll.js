@@ -13,7 +13,7 @@ module.exports = {
     {
       id: 'BATCH_ID',
       label: 'Batch ID',
-      minWidth: 90,
+      minWidth: 75,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -21,7 +21,7 @@ module.exports = {
     {
       id: 'CRO',
       label: 'CRO',
-      minWidth: 50,
+      minWidth: 55,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -29,7 +29,7 @@ module.exports = {
     {
       id: 'ASSAY_TYPE',
       label: 'Assay Type',
-      minWidth: 50,
+      minWidth: 65,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -38,7 +38,7 @@ module.exports = {
     {
       id: 'CELL_LINE',
       label: 'Cell Line',
-      minWidth: 50,
+      minWidth: 65,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -47,16 +47,7 @@ module.exports = {
     {
       id: 'VARIANT',
       label: 'Variant',
-      minWidth: 60,
-      align: 'right',
-      fontWeight: 'bold',
-      backgroundColor: PurpleColour,
-      color: '#efeff6ff',
-    },
-    {
-      id: 'THREED',
-      label: '3D',
-      minWidth: 50,
+      minWidth: 65,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -65,7 +56,7 @@ module.exports = {
     {
       id: 'IC50_NM',
       label: 'IC50 nM',
-      minWidth: 50,
+      minWidth: 60,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -80,7 +71,7 @@ module.exports = {
     },
     {
       id: 'PCT_SERUM',
-      label: '%Pct Serum',
+      label: '% Serum',
       minWidth: 60,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
@@ -89,7 +80,7 @@ module.exports = {
     {
       id: 'THREED',
       label: '3D',
-      minWidth: 60,
+      minWidth: 50,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -121,7 +112,7 @@ module.exports = {
     {
       id: 'CELL_INCUBATION_HR',
       label: 'Cell Incu (hr)',
-      minWidth: 50,
+      minWidth: 60,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
