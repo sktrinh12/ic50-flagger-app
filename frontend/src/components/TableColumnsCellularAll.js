@@ -5,7 +5,7 @@ module.exports = {
     {
       id: 'EXPERIMENT_ID',
       label: 'Experiment ID',
-      minWidth: 90,
+      minWidth: 70,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -21,7 +21,7 @@ module.exports = {
     {
       id: 'CRO',
       label: 'CRO',
-      minWidth: 90,
+      minWidth: 50,
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
       color: '#efeff6ff',
@@ -48,6 +48,15 @@ module.exports = {
       id: 'VARIANT',
       label: 'Variant',
       minWidth: 60,
+      align: 'right',
+      fontWeight: 'bold',
+      backgroundColor: PurpleColour,
+      color: '#efeff6ff',
+    },
+    {
+      id: 'THREED',
+      label: '3D',
+      minWidth: 50,
       align: 'right',
       fontWeight: 'bold',
       backgroundColor: PurpleColour,
