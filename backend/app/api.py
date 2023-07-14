@@ -48,7 +48,10 @@ app.add_middleware(
 def read_root():
     payload = generic_oracle_query("SELECT * FROM v$version", {"SQL_TYPE": "blank"})
     if payload:
-        return {"Database Info": payload} | dict(STATUS_CODE=status.HTTP_200_OK)
+        return {
+            "Database Info": payload,
+            "Version": os.getenv("VERSION_NUMBER"),
+        } | dict(STATUS_CODE=status.HTTP_200_OK)
     return {"Error Code": status.HTTP_400_BAD_REQUEST, "INFO": f"payload: {payload}"}
 
 
