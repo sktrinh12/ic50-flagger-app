@@ -69,6 +69,14 @@ module.exports = {
       color: '#efeff6ff',
     },
     {
+      id: 'TREATMENT',
+      label: 'Trt',
+      minWidth: 55,
+      fontWeight: 'bold',
+      backgroundColor: PurpleColour,
+      color: '#efeff6ff',
+    },
+    {
       id: 'GEOMEAN',
       label: 'Geomean nM',
       minWidth: 70,
