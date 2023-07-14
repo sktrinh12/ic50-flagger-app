@@ -1,5 +1,7 @@
 from scipy import stats
 from numpy import std
+from .datasource_sql import get_ds_sql
+from .sql import sql_cmds
 
 
 def get_msr_stats(results, n_limit):
@@ -43,3 +45,18 @@ def get_msr_stats(results, n_limit):
         "MAX": max_diff,
     }
     return calc_stats
+
+
+def update_sql_ds():
+    dct_names = {
+        "GEOMEAN_CELL_STATS": {"ds_alias": "cellular", "id": 860},
+        "GEOMEAN_BIO_STATS": {"ds_alias": "biochemical", "id": 912},
+    }
+    for key, dct in dct_names.items():
+        payload = {dct["ds_alias"]: {"id": dct["id"], "app_type": "geomean_flagger"}}
+        sql = get_ds_sql(payload)
+        sql_query = sql["0"]["formatted_query"]
+        sql_cmds[key] = sql_query
+        dct_names[key]["sql_query"] = sql_query
+
+    return dct_names
