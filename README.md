@@ -65,7 +65,7 @@ npm run start
 
 ### Update sql datasource
 
-The biochemical & cellular geomean SQL statement is extracted from http://sql-ds.kinnate
+The biochemical & cellular geomean SQL statements are extracted from http://sql-ds.kinnate
 service and formatted properly to render in the app. If changes were made to the SQL
 source on the Dotmatics side, use this endpoint to update the SQL:
 `http://geomean.backend.kinnate/v1/update_sql_ds`. Restarting the pods will alsoachieve the same result since it will retrieve the SQL on start-up. **Test the sql-datasource service after making changes to the SQL on the DM side**
