@@ -1,10 +1,18 @@
-from fastapi import FastAPI, Response, Request, HTTPException, Depends, status, Query
+from fastapi import (
+    FastAPI,
+    Response,
+    Request,
+    HTTPException,
+    Depends,
+    status,
+    Query,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
 from typing import List
 from .db import generate_sql_stmt, generic_oracle_query
 from .schemas import GetDataSchema
-from .functions import get_msr_stats
+from .functions import get_msr_stats, update_sql_ds
 from .redis_connection import redis_conn
 from .tasks import update_redis_cache, tasks_infreq, tasks_freq
 from json import loads
@@ -147,6 +155,18 @@ async def update_data(payload: Request, sql_type: str, type: str, user_name: str
         STATUS_CODE = status.HTTP_400_BAD_REQUEST
     post_result = rtn_payload | dict(STATUS_CODE=STATUS_CODE) | result
     return post_result
+
+
+# update sql statements dict
+@app.get("/v1/update_sql_ds")
+async def update_sql():
+    rtn = update_sql_ds()
+    return rtn
+
+
+@app.on_event("startup")
+async def startup():
+    update_sql_ds()
 
 
 @app.on_event("startup")
