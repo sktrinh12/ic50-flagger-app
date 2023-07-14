@@ -11,6 +11,7 @@ field_names_dct = {
         "CELL_INCUBATION_HR",
         "PCT_SERUM",
         "THREED",
+        "TREATMENT",
         "GEOMEAN",
         "N_OF_M",
         "STDEV",
